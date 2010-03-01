@@ -12,25 +12,73 @@ SceneNode::~SceneNode()
 
 void SceneNode::rotate(char axis, double angle)
 {
-  std::cerr << "Stub: Rotate " << m_name << " around " << axis << " by " << angle << std::endl;
-  // Fill me in
+//	std::cerr << "Stub: Rotate " << m_name << " around " << axis << " by " << angle << std::endl;
+	Matrix4x4 temp;
+	double radAngle = angle * M_PI / 180.0;
+	if (axis == 'x')
+	{
+		rotX += angle;
+		temp[1][2] = -1 * sin(radAngle);
+		temp[1][1] = cos(radAngle);
+		temp[2][2] = cos(radAngle);
+		temp[2][1] = sin(radAngle);
+	}
+	else if (axis == 'y')
+	{
+		rotY += angle;
+		temp[2][0] = -1 * sin(radAngle);
+		temp[0][0] = cos(radAngle);
+		temp[2][2] = cos(radAngle);
+		temp[0][2] = sin(radAngle);
+	}
+	else if (axis == 'z')
+	{
+		rotZ += angle;
+		temp[0][1] = -1 * sin(radAngle);
+		temp[0][0] = cos(radAngle);
+		temp[1][1] = cos(radAngle);
+		temp[1][0] = sin(radAngle);
+	}
+	m_trans = m_trans * temp;
 }
 
 void SceneNode::scale(const Vector3D& amount)
 {
-  std::cerr << "Stub: Scale " << m_name << " by " << amount << std::endl;
-  // Fill me in
+	Matrix4x4 temp;
+	temp[0][0] = amount[0];
+	temp[1][1] = amount[1];
+	temp[2][2] = amount[2];
+
+	m_trans = m_trans * temp;
 }
 
 void SceneNode::translate(const Vector3D& amount)
 {
-  std::cerr << "Stub: Translate " << m_name << " by " << amount << std::endl;
-  // Fill me in
+/*	std::cerr << "Stub: Translate " << m_name << " by " << amount << std::endl;
+	// Fill me in*/
+	Matrix4x4 temp;
+	temp[0][3] += amount[0];
+	temp[1][3] += amount[1];
+	temp[2][3] += amount[2];
+
+	m_trans = m_trans * temp;
 }
 
 bool SceneNode::is_joint() const
 {
   return false;
+}
+
+bool SceneNode::hit(Ray* ray, double epsilon)
+{
+	ChildList temp = m_children;
+	ChildList::iterator i;
+	for ( i = temp.begin() ; i != temp.end(); i++ )
+	{
+		(*i)->hit(ray, epsilon);
+	}
+	
+	return ray->isHit();	
 }
 
 JointNode::JointNode(const std::string& name)
@@ -61,6 +109,11 @@ void JointNode::set_joint_y(double min, double init, double max)
   m_joint_y.max = max;
 }
 
+bool JointNode::hit(Ray *ray, double epsilon)
+{
+	return false;
+}
+
 GeometryNode::GeometryNode(const std::string& name, Primitive* primitive)
   : SceneNode(name),
     m_primitive(primitive)
@@ -71,3 +124,20 @@ GeometryNode::~GeometryNode()
 {
 }
  
+bool GeometryNode::hit(Ray *ray, double epsilon)
+{
+	ChildList temp = m_children;
+	ChildList::iterator i;
+	for ( i = temp.begin() ; i != temp.end(); i++ )
+	{
+		(*i)->hit(ray, epsilon);
+	}
+	
+	bool ret = m_primitive->hit(*ray, epsilon);
+	if (ret)
+	{
+		ray->material = m_material;
+	}
+	
+	return ray->isHit();
+}

@@ -5,6 +5,7 @@
 #include "algebra.hpp"
 #include "scene.hpp"
 #include "light.hpp"
+#include "ray.hpp"
 
 void a4_render(// What to render
                SceneNode* root,

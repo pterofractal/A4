@@ -18,10 +18,12 @@
 #include <iostream>
 #include <algorithm>
 #include <cmath>
+#include <limits.h>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
+ 
 
 class Point2D
 {
@@ -485,6 +487,20 @@ inline Colour operator +(const Colour& a, const Colour& b)
 inline std::ostream& operator <<(std::ostream& os, const Colour& c)
 {
   return os << "c<" << c.R() << "," << c.G() << "," << c.B() << ">";
+}
+
+/*static double max (double a, double b)
+{
+	if (a > b)
+		return a;
+	return b;
+}*/
+
+static double min (double a, double b)
+{
+	if (a < b)
+		return a;
+	return b;
 }
 
 #endif // CS488_ALGEBRA_HPP

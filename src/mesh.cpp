@@ -29,3 +29,8 @@ std::ostream& operator<<(std::ostream& out, const Mesh& mesh)
   std::cerr << "});" << std::endl;
   return out;
 }
+
+	bool Mesh::hit (Ray& ray, double episilon)
+	{
+		return true;
+	}

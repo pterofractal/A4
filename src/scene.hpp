@@ -44,7 +44,11 @@ public:
 
   // Returns true if and only if this node is a JointNode
   virtual bool is_joint() const;
-  
+
+
+	// Traverse through children
+	virtual bool hit(Ray* ray, double epsilon);
+	
 protected:
   
   // Useful for picking
@@ -54,30 +58,13 @@ protected:
   // Transformations
   Matrix4x4 m_trans;
   Matrix4x4 m_invtrans;
-
+	
   // Hierarchy
   typedef std::list<SceneNode*> ChildList;
   ChildList m_children;
-};
 
-class JointNode : public SceneNode {
-public:
-  JointNode(const std::string& name);
-  virtual ~JointNode();
-
-  virtual bool is_joint() const;
-
-  void set_joint_x(double min, double init, double max);
-  void set_joint_y(double min, double init, double max);
-
-  struct JointRange {
-    double min, init, max;
-  };
-
-  
-protected:
-
-  JointRange m_joint_x, m_joint_y;
+	// Rotations
+	double rotX, rotY, rotZ;
 };
 
 class GeometryNode : public SceneNode {
@@ -94,9 +81,35 @@ public:
     m_material = material;
   }
 
+	// Traverse through children
+	virtual bool hit(Ray* ray, double epsilon);
 protected:
   Material* m_material;
   Primitive* m_primitive;
 };
 
+
+
+class JointNode : public SceneNode {
+public:
+  JointNode(const std::string& name);
+  virtual ~JointNode();
+
+  virtual bool is_joint() const;
+
+  void set_joint_x(double min, double init, double max);
+  void set_joint_y(double min, double init, double max);
+
+  struct JointRange {
+    double min, init, max;
+  };
+
+	virtual bool hit(Ray* ray, double epsilon);
+protected:
+
+  JointRange m_joint_x, m_joint_y;
+};
+
+
 #endif
+

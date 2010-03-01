@@ -20,7 +20,21 @@ public:
   virtual ~PhongMaterial();
 
   virtual void apply_gl() const;
-
+	
+	Colour get_kd()
+	{
+		return m_kd;
+	}
+	
+	Colour get_ks()
+	{
+		return m_ks;
+	}
+	
+	double get_shininess()
+	{
+		return m_shininess;
+	}
 private:
   Colour m_kd;
   Colour m_ks;
