@@ -441,6 +441,12 @@ public:
     , g_(other.g_)
     , b_(other.b_)
   {}
+	
+	Colour()
+	: r_(0)
+	, g_(0)
+	, b_(0)
+	{}
 
   Colour& operator =(const Colour& other)
   {

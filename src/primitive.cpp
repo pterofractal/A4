@@ -54,7 +54,15 @@ bool NonhierSphere::hit(Ray& ray, double epsilon)
 		
 		
 		t = min(roots[0], roots[1]);
-
+		
+		// If the root doesn't exist AND the ray hasn't
+		// hit anything yet then we ignore this solution
+		if (t == LONG_MAX && !ray.isHit())
+		{
+			t = 0;
+			return false;
+		}
+		
 		if (ray.isHit() && t > ray.t)
 		{
 			// This object is closer to the origin so we will update our ray
@@ -81,5 +89,54 @@ NonhierBox::~NonhierBox()
 
 bool NonhierBox::hit(Ray& ray, double epsilon)
 {
-	return true;
+	Vector3D normal(1,0,0);
+	
+	double numer, denom;
+	Point3D pointOnPlane = m_pos;
+	for (int i = 0;i<3;i++)
+	{
+		normal[0] = 0;
+		normal[1] = 0;
+		normal[2] = 0;
+		if (i == 0)
+			normal[0] = 1;
+		else if (i == 1)
+			normal[1] = 1;
+		else
+		{
+			normal[2] = 1;
+			pointOnPlane[0] += m_size;
+			pointOnPlane[1] += m_size;
+			pointOnPlane[2] += m_size;
+		} 
+
+		
+		double t = (pointOnPlane - ray.origin).dot(normal) / (normal.dot(ray.dir));
+		if (t > epsilon)
+		{
+			// ray hits plane
+			
+			// Check if hitting the other side of the box is closer
+			normal = -1 * normal;
+			double t2 = (pointOnPlane - ray.origin).dot(normal) / (normal.dot(ray.dir));
+			if (t > t2 && t2 > epsilon)
+				t = t2;
+			
+			if (ray.isHit() && t > ray.t)
+			{
+				// This object is closer to the origin so we will update our ray
+				return false;
+			}
+			if (t > 1 || t < 0)
+				return false;			
+
+			std::cerr << "Hit\t" << t << "\n" ;
+			ray.n = normal;
+			ray.t = t;			
+			ray.setHit(true);
+
+			return true;
+		}
+	}
+	return false;
 }
