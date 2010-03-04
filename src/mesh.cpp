@@ -1,4 +1,5 @@
 #include "mesh.hpp"
+#include "algebra.hpp"
 #include <iostream>
 
 Mesh::Mesh(const std::vector<Point3D>& verts,
@@ -30,7 +31,52 @@ std::ostream& operator<<(std::ostream& out, const Mesh& mesh)
   return out;
 }
 
-	bool Mesh::hit (Ray& ray, double episilon)
+bool Mesh::hit (Ray& ray, double epsilon)
+{
+
+	Ray duplicateRay = ray;
+	Ray backUp = duplicateRay;
+	int index = -1;
+	int backupI = index;
+	bool validHit = false;
+	for (int i = 0;i<m_faces.size();i++)
 	{
+		if (m_faces[i].size() >= 3)
+		{
+			Vector3D a = m_verts[m_faces[i][1]] - m_verts[m_faces[i][0]];	
+			Vector3D b = m_verts[m_faces[i][2]] - m_verts[m_faces[i][0]];
+			Vector3D n = a.cross(b);
+			n.normalize();
+			Plane p(m_verts[m_faces[i][0]], n);
+			if (p.hit(duplicateRay, epsilon))
+			{			
+				if (!pointInTriangle(duplicateRay.getHitPos(), m_verts[m_faces[i][0]], m_verts[m_faces[i][1]], m_verts[m_faces[i][2]]))
+				{
+					duplicateRay = backUp;
+					//index = backupI;
+				}			
+				else
+				{
+					index = i;
+					validHit = true;
+					backUp = duplicateRay;
+					backupI = index;
+				}		
+			}
+		}
+	}
+	
+	if (index != -1)
+	{
+/*		std::cout << "Ray\t" << duplicateRay.getHitPos() << "t\t" << duplicateRay.t << "\n";*/
+		ray = duplicateRay;
+		
+		/*ray.t = duplicateRay.t;
+		ray.n = duplicateRay.n;
+		ray.setHit(true);*/
 		return true;
 	}
+		
+	
+	return false;
+}

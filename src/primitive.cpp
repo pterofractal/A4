@@ -280,10 +280,52 @@ bool NonhierBox::hit(Ray& ray, double epsilon)
 			return false;
 		
 		ray.t = tmin;
-		ray.n = get_normal(face_out);
+//		ray.n = get_normal(face_out);
 		ray.setHit(true);
 		return (true);
 	}
 	
+	return false;
+}
+
+
+/*
+Plane::Plane(Vector3D u, Vector3D v)
+{
+	this->u = u;
+	this->v = v;
+}
+
+
+Plane::Plane()
+{
+}*/
+
+Plane::Plane(Point3D pointOnPlane, Vector3D n)
+{
+	pos = pointOnPlane;
+	normal = n;
+}
+
+Plane::~Plane()
+{
+	
+}
+bool Plane::hit(Ray& ray, double epsilon)
+{
+	double t = (pos - ray.origin).dot(normal) / (ray.dir.dot(normal));
+	
+	if (ray.isHit() && ray.t < t)
+	{
+		return false;
+	}
+	
+	if (t > epsilon)
+	{
+		ray.t = t;
+		ray.n = normal;
+		ray.setHit(true);
+		return true;
+	}
 	return false;
 }

@@ -71,4 +71,23 @@ private:
 	double m_size;
 };
 
+class Plane : public Primitive 
+{
+	public:
+//		Plane(Vector3D u, Vector3D v);
+		Plane(Point3D pointOnPlane, Vector3D n);
+//		Plane();
+		virtual ~Plane();
+		virtual bool hit (Ray& ray, double episilon);
+	
+	private:
+		// Define plane using two vectors
+//		Vector3D u, v;
+		
+		// Define plane using a point and a normal
+		Point3D pos;
+		Vector3D normal;
+	
+};
+
 #endif

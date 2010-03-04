@@ -114,6 +114,8 @@ void a4_render(// What to render
 
 					// Determine the direction of light
 					Vector3D directionOfLight = l->position - ray->getHitPos();
+					// Calculate how far the light is from the hit position
+					double dist = directionOfLight.length();
 					directionOfLight.normalize();
 					
 					// Construct a ray representing the light
@@ -142,31 +144,32 @@ void a4_render(// What to render
 						// Need to make sure the specular value isn't negative
 						if (r.dot(ray->dir) < 0)
 							specular = -1 * specular;
-
-						// Calculate how far the light is from the hit position
-						double dist = directionOfLight.length();
-						
+				
 						// Calculate the attenuation
-						double atten = 1 / (l->falloff[2] + l->falloff[1] * dist + l->falloff[0] * dist * dist);
+						double atten = 1 / (l->falloff[0] + l->falloff[1] * dist + l->falloff[2] * dist * dist);
 						
+					//	std::cout << "spec:\t" << specular << "\td\t" << diffuse << "\tlight\t" << l->colour * atten << "\troh" << roh << "\tatten\t" << atten <<"\n";
 						// Bring values together
-						roh = roh + specular + diffuse * l->colour;
-						roh = roh * atten;
-			//									std::cout << "roh\t" << roh << "\n";
+						roh = roh + specular + diffuse * l->colour * atten;
+/*						std::cout << "roh\t" << roh << "\n";*/
+					}
+					else
+					{
+						//Light is being blocked
+/*						std::cout << "light ray hit pos:\t"<< ray->getHitPos() << "\tlight hit pos:\t" << lightRay->getHitPos() << "\n";*/
 					}
 				}
-				
+
 				// Add the ambient to our colour values
 				roh = roh + ambient;
-				
+
 				//std::cout << "roh \t" << roh << "\n";
 				// Red: increasing from top to bottom
 				img(x, y, 0) = roh.R();
 				// Green: increasing from left to right
 				img(x, y, 1) = roh.G();
 				// Blue: in lowpper-right corners
-				img(x, y, 2) = roh.B();
-				
+				img(x, y, 2) = roh.B();				
 			}
 			else
 			{

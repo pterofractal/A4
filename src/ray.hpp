@@ -27,12 +27,18 @@ class Ray {
 		{
 			origin = other.origin;
 			dir = other.dir;
+			
+			n = other.n;
+			name = other.name;
+			t = other.t;
+			material = other.material;
+			hit = other.isHit();
 			return *this;
 		}
 		
 		~Ray(void);
 		
-		bool isHit()
+		bool isHit() const
 		{
 			return hit;
 		}

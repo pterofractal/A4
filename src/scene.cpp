@@ -136,9 +136,10 @@ bool GeometryNode::hit(Ray *ray, double epsilon)
 	bool ret = m_primitive->hit(*ray, epsilon);
 	if (ret)
 	{
+	//	std::cout << "Hiyo\n";
 		ray->material = m_material;
 		ray->name = m_name;
 	}
 	
-	return ray->isHit();
+	return ret;
 }
