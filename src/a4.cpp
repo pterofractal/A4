@@ -80,54 +80,35 @@ void a4_render(// What to render
 	{
 		for (int x = 0;x<width;x++)
 		{
+			// Start with screen position
 			pixelWorld[0] = x;
 			pixelWorld[1] = y;
 			pixelWorld[2] = 0;
 			
+			// Push screen pixel through each transformation			
 			pixelWorld = M * pixelWorld;
 			pixelWorld = S * pixelWorld;
 			pixelWorld = R * pixelWorld;
 			pixelWorld = T * pixelWorld;
 			
-			//ray->origin = origin;
+			// Determine the direction of the ray
 			ray->dir = pixelWorld - eye;
 			ray->dir.normalize();
 			
-			//std::cout << "dir\t" << ray->dir << "\n";
-			
-			//std::cout << "pixelWorld\t" << pixelWorld << "\tray dir " << ray->dir << "\tx " << x << "\t" << y << "\n";
-			root->hit(ray, 0.00001);
+			// Intersect the ray with all the objects
+			root->hit(ray, 0.0000000001);
 			
 			if (ray->isHit())
 			{
+				// Colour variable that will be used to determine colour for a particular pixel
 				Colour roh(0,0,0);
-				Colour specular(0, 0, 0);
+				
+				// Iterate through each light source
 				for (std::list<Light*>::const_iterator I = lights.begin(); I != lights.end(); ++I) 
 				{
+					// Get light pointer
 					Light *l = *I;
-					Vector3D temp = pixelWorld - l->position;
-					temp.normalize();
-	 				/*roh = ( (PhongMaterial *)ray->material)->get_kd();
-					roh = (temp.dot(ray->n) ) * roh;
-					roh = roh * l->colour;*/
 
-/*					Vector3D r = (-1 * temp) + 2 * (temp.dot(ray->n) ) * ray->n;
-					double specularCoeff = pow(r.dot(view),  ( (PhongMaterial *)ray->material)->get_shininess());
-
-					//specularCoeff *= (1/(temp.dot(ray->n ) ) );
-					specularCoeff = 0;
-
-					//roh = roh + ( (PhongMaterial *)ray->material)->get_kd() + specularCoeff * ( (PhongMaterial *)ray->material)->get_ks();
-					roh = roh + ( (PhongMaterial *)ray->material)->get_kd();
-					roh = temp.dot(ray->n) * roh;
-					
-					Vector3D hitVec = l->position - ray->getHitPos();
-					double dist = hitVec.length();
-					double atten = 1 / (l->falloff[0] + l->falloff[1] * dist + l->falloff[2] * dist * dist);
-				
-					roh = atten * roh;
-					roh = roh * l->colour;*/
-					
 					// Colour values for diffuse and specular
 					Colour diffuse, specular;
 
@@ -138,12 +119,14 @@ void a4_render(// What to render
 					// Construct a ray representing the light
 					Ray *lightRay = new Ray(ray->getHitPos(), directionOfLight);
 					lightRay->setHit(false);
-					root->hit(lightRay, 0.00000001);
+					lightRay->secondaryRay = true;
+					root->hit(lightRay, 0.0000000001);
+//					std::cout<<"ray dir\t" << lightRay->t << "\n";
 					if (!lightRay->isHit())
 					{
 						// If the light ray doesn't hit anything then the light from 
 						// the light source reaches the hit point
-						
+
 						// Compute the reflection vector
 						Vector3D r = 2 * (directionOfLight.dot(ray->n))*ray->n - directionOfLight;
 						r.normalize();
@@ -169,9 +152,11 @@ void a4_render(// What to render
 						// Bring values together
 						roh = roh + specular + diffuse * l->colour;
 						roh = roh * atten;
+			//									std::cout << "roh\t" << roh << "\n";
 					}
 				}
 				
+				// Add the ambient to our colour values
 				roh = roh + ambient;
 				
 				//std::cout << "roh \t" << roh << "\n";
@@ -185,6 +170,7 @@ void a4_render(// What to render
 			}
 			else
 			{
+				// Create blue gradient by default if ray misses
 				double gradient = (1.0 * y)/height;
 				img(x, y, 0) = 0;
 				img(x, y, 1) = 0;

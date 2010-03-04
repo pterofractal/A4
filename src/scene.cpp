@@ -137,6 +137,7 @@ bool GeometryNode::hit(Ray *ray, double epsilon)
 	if (ret)
 	{
 		ray->material = m_material;
+		ray->name = m_name;
 	}
 	
 	return ray->isHit();
