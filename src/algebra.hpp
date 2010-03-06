@@ -495,18 +495,4 @@ inline std::ostream& operator <<(std::ostream& os, const Colour& c)
   return os << "c<" << c.R() << "," << c.G() << "," << c.B() << ">";
 }
 
-/*static double max (double a, double b)
-{
-	if (a > b)
-		return a;
-	return b;
-}*/
-
-static double min (double a, double b)
-{
-	if (a < b)
-		return a;
-	return b;
-}
-
 #endif // CS488_ALGEBRA_HPP

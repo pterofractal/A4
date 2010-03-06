@@ -53,8 +53,23 @@ class Ray {
 			return origin + (t * dir);
 		}
 		
+		Point3D getHitPos(double param)
+		{
+			return origin + (param * dir);
+		}
+		
+		double getLength()
+		{
+			return (origin - getHitPos()).length();
+		}
+		
+		double getLength(double param)
+		{
+			return (origin - getHitPos(param)).length();
+		}
 	private:
 		bool hit;
+		friend std::ostream& operator<<(std::ostream& out, const Ray& ray);
 };
 
 

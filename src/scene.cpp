@@ -39,7 +39,8 @@ void SceneNode::rotate(char axis, double angle)
 		temp[1][1] = cos(radAngle);
 		temp[1][0] = sin(radAngle);
 	}
-	m_trans = m_trans * temp;
+	set_transform(m_trans * temp);
+//	m_trans = m_trans * temp;
 }
 
 void SceneNode::scale(const Vector3D& amount)
@@ -48,20 +49,21 @@ void SceneNode::scale(const Vector3D& amount)
 	temp[0][0] = amount[0];
 	temp[1][1] = amount[1];
 	temp[2][2] = amount[2];
-
-	m_trans = m_trans * temp;
+	set_transform(m_trans * temp);
+	
+	//m_trans = m_trans * temp;
 }
 
 void SceneNode::translate(const Vector3D& amount)
 {
-/*	std::cerr << "Stub: Translate " << m_name << " by " << amount << std::endl;
 	// Fill me in*/
 	Matrix4x4 temp;
 	temp[0][3] += amount[0];
 	temp[1][3] += amount[1];
 	temp[2][3] += amount[2];
-
-	m_trans = m_trans * temp;
+	set_transform(m_trans * temp);
+	std::cout << "translate:" << m_trans << "\n";
+	//m_trans = m_trans * temp;
 }
 
 bool SceneNode::is_joint() const
@@ -73,11 +75,27 @@ bool SceneNode::hit(Ray* ray, double epsilon)
 {
 	ChildList temp = m_children;
 	ChildList::iterator i;
+	// Transform ray
+	// std::cout << "Ori\t" << ray->dir << std::endl;
+	ray->origin = m_invtrans * ray->origin;
+	Vector3D backupDir = ray->dir;
+	ray->dir = m_invtrans * ray->dir;
+	// double d = ray->dir.normalize();
+	// std::cout << ray->dir << std::endl;
+	
+	
 	for ( i = temp.begin() ; i != temp.end(); i++ )
 	{
 		(*i)->hit(ray, epsilon);
 	}
-	
+
+	// Restore ray
+	ray->origin = m_trans * ray->origin;
+	ray->dir = m_trans * ray->dir;
+	// ray->dir.normalize();
+	ray->n = m_invtrans.transpose() * ray->n;
+	ray->n.normalize();
+
 	return ray->isHit();	
 }
 
@@ -128,18 +146,38 @@ bool GeometryNode::hit(Ray *ray, double epsilon)
 {
 	ChildList temp = m_children;
 	ChildList::iterator i;
+	
+	// Transform ray
+	// std::cout << "Ori\t" << ray->dir << std::endl;
+	ray->origin = m_invtrans * ray->origin;
+	Vector3D backupDir = ray->dir;
+	ray->dir = m_invtrans * ray->dir;
+	// double d = ray->dir.normalize();
+	// std::cout << ray->dir << std::endl;
+	
+	// iterate through children and intersect with children
 	for ( i = temp.begin() ; i != temp.end(); i++ )
 	{
 		(*i)->hit(ray, epsilon);
 	}
 	
+	// Intersect with primitive
 	bool ret = m_primitive->hit(*ray, epsilon);
+	
+	// Restore ray
+	ray->origin = m_trans * ray->origin;
+	ray->dir = m_trans * ray->dir;
+	// ray->dir.normalize();
+	ray->n = m_invtrans.transpose() * ray->n;
+	ray->n.normalize();
+	
 	if (ret)
 	{
 	//	std::cout << "Hiyo\n";
 		ray->material = m_material;
 		ray->name = m_name;
 	}
+	
 	
 	return ret;
 }

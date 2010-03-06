@@ -72,7 +72,6 @@ void a4_render(// What to render
 	T[1][3] = eye[1];
 	T[2][3] = eye[2];
 	
-	
 	Ray *ray = new Ray();
 	//ray->dir = view;
 	ray->origin = eye;
@@ -90,7 +89,8 @@ void a4_render(// What to render
 			pixelWorld = S * pixelWorld;
 			pixelWorld = R * pixelWorld;
 			pixelWorld = T * pixelWorld;
-			
+		
+			//std::cout << "pixel:(" << x << ", " << y << ")\tpixel world: " << pixelWorld << "\tray dir: " << (pixelWorld - eye) << "\n";	
 			// Determine the direction of the ray
 			ray->dir = pixelWorld - eye;
 			ray->dir.normalize();
@@ -114,8 +114,12 @@ void a4_render(// What to render
 
 					// Determine the direction of light
 					Vector3D directionOfLight = l->position - ray->getHitPos();
+					
 					// Calculate how far the light is from the hit position
+					
 					double dist = directionOfLight.length();
+					
+					// Normalize direction of light
 					directionOfLight.normalize();
 					
 					// Construct a ray representing the light
@@ -124,7 +128,7 @@ void a4_render(// What to render
 					lightRay->secondaryRay = true;
 					root->hit(lightRay, 0.0000000001);
 //					std::cout<<"ray dir\t" << lightRay->t << "\n";
-					if (!lightRay->isHit())
+					if (!lightRay->isHit() || (lightRay->isHit() && dist < (lightRay->getHitPos() - ray->getHitPos()).length() ) ) 
 					{
 						// If the light ray doesn't hit anything then the light from 
 						// the light source reaches the hit point
@@ -156,7 +160,8 @@ void a4_render(// What to render
 					else
 					{
 						//Light is being blocked
-/*						std::cout << "light ray hit pos:\t"<< ray->getHitPos() << "\tlight hit pos:\t" << lightRay->getHitPos() << "\n";*/
+						// if (ray->name == "s")
+							// std::cout << lightRay->name << "\t\tdist: " << dist << "\t light hit dist: " << (lightRay->getHitPos() - ray->getHitPos()).normalize() << std::endl;  
 					}
 				}
 

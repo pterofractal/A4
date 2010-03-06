@@ -31,3 +31,9 @@ Ray::~Ray()
 {
 	
 }
+
+std::ostream& operator<<(std::ostream& out, const Ray& ray)
+{
+	std::cerr << "Ray eye: " << ray.origin << "\tdir:" << ray.dir <<std::endl;
+	return out;
+}

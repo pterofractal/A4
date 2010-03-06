@@ -33,34 +33,61 @@ std::ostream& operator<<(std::ostream& out, const Mesh& mesh)
 
 bool Mesh::hit (Ray& ray, double epsilon)
 {
-
+	// duplicateRay is simply used as a backup so that we don't destroy valid
+	// values inside ray
 	Ray duplicateRay = ray;
+	
+	// backUp is used to restore duplicateRay to last valid ray intersection with a 
+	// plane of the mesh
 	Ray backUp = duplicateRay;
+	
+	// index is used to determine which plane was hit
 	int index = -1;
-	int backupI = index;
-	bool validHit = false;
+	
+	// Iterate through each face
 	for (int i = 0;i<m_faces.size();i++)
 	{
+		// We need at least 3 points to define a plane
 		if (m_faces[i].size() >= 3)
 		{
+			// Assume the points are in general position 
+			// thus we only need the first 3 points to form a plan
 			Vector3D a = m_verts[m_faces[i][1]] - m_verts[m_faces[i][0]];	
 			Vector3D b = m_verts[m_faces[i][2]] - m_verts[m_faces[i][0]];
+			
+			// Construct a normal to the plane
 			Vector3D n = a.cross(b);
 			n.normalize();
+			
+			// Create a plane object
 			Plane p(m_verts[m_faces[i][0]], n);
+			
+			// Intersect the ray with the plane
 			if (p.hit(duplicateRay, epsilon))
 			{			
-				if (!pointInTriangle(duplicateRay.getHitPos(), m_verts[m_faces[i][0]], m_verts[m_faces[i][1]], m_verts[m_faces[i][2]]))
+				bool pointInPlane = false;
+				
+				// Divide plane into triangles and check each triangle for the point
+				for (int j = 1;j<m_faces[i].size() - 1;j++)
+				{
+					if (pointInTriangle(duplicateRay.getHitPos(), m_verts[m_faces[i][0]], m_verts[m_faces[i][j]], m_verts[m_faces[i][j+1]]))
+					{
+						pointInPlane = true;
+						break;
+					}
+				}
+				
+				// If the point isn't in the plane we will restore our ray back to the original
+				if (!pointInPlane)
 				{
 					duplicateRay = backUp;
-					//index = backupI;
 				}			
 				else
 				{
+					// If the ray actual hit something in the plane we will store its index
+					// and all other values into the backup.
 					index = i;
-					validHit = true;
 					backUp = duplicateRay;
-					backupI = index;
 				}		
 			}
 		}
@@ -68,15 +95,10 @@ bool Mesh::hit (Ray& ray, double epsilon)
 	
 	if (index != -1)
 	{
-/*		std::cout << "Ray\t" << duplicateRay.getHitPos() << "t\t" << duplicateRay.t << "\n";*/
-		ray = duplicateRay;
-		
-		/*ray.t = duplicateRay.t;
-		ray.n = duplicateRay.n;
-		ray.setHit(true);*/
+		// We have a valid hit
+		ray = duplicateRay;		
 		return true;
-	}
-		
+	}	
 	
 	return false;
 }
