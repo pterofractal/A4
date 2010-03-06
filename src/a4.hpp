@@ -6,6 +6,7 @@
 #include "scene.hpp"
 #include "light.hpp"
 #include "ray.hpp"
+#include "image.hpp"
 
 void a4_render(// What to render
                SceneNode* root,
@@ -18,7 +19,17 @@ void a4_render(// What to render
                const Vector3D& up, double fov,
                // Lighting parameters
                const Colour& ambient,
-               const std::list<Light*>& lights
+               std::list<Light*>& lights
                );
 
+struct TraceArgs {
+	Image* img;
+	std::list<Light*>* lights;
+	Point3D eye;
+	SceneNode* root;
+	Colour ambient;
+	int xMin, xMax, yMin, yMax, height;	
+};
+
+void *ray_trace(void *arg);
 #endif
