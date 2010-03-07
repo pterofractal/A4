@@ -44,6 +44,74 @@ bool Mesh::hit (Ray& ray, double epsilon)
 	// index is used to determine which plane was hit
 	int index = -1;
 	
+	Matrix4x4 D1, D2, D3, D;
+	Vector3D vec1, vec2, vec3, vec4;
+	bool ret = false;
+	// Column 3 from D
+	vec3 = ray.dir;
+	for (int i = 0;i<m_faces.size();i++)
+	{
+		
+		// The RHS of the equation
+		vec4 = ray.origin - m_verts[m_faces[i][0]];
+		for (int j = 1;j<m_faces[i].size() - 1;j++)
+		{
+			// Column 1 of D
+			vec1 = m_verts[m_faces[i][j]] - m_verts[m_faces[i][0]];
+			vec2 = m_verts[m_faces[i][j+1]] - m_verts[m_faces[i][0]];
+			
+			for (int k = 0;k<3;k++)
+			{
+				D[k][0] = vec1[k];
+				D[k][1] = vec2[k];
+				D[k][2] = vec3[k];
+				  
+				D1[k][0] = vec4[k];
+				D1[k][1] = vec2[k];
+				D1[k][2] = vec3[k];
+				               
+				D2[k][0] = vec1[k];
+				D2[k][1] = vec4[k];
+				D2[k][2] = vec3[k];
+				               
+				D3[k][0] = vec1[k];
+				D3[k][1] = vec2[k];
+				D3[k][2] = vec4[k];
+			}	
+			
+			double beta, gamma, t;
+			double dDet = 1 / D.det(D);
+			beta = D1.det(D1) * dDet;
+			gamma = D2.det(D2) * dDet;
+			t = D3.det(D3) * dDet;
+			t = -1 * t;
+			
+			if (beta >= epsilon && gamma >= epsilon && beta + gamma <= 1 && t > epsilon)
+			{
+				if (ray.isHit() && ray.t < t)
+					continue;
+				
+				// Get two points on the triangle
+				Vector3D a = m_verts[m_faces[i][1]] - m_verts[m_faces[i][0]];	
+				Vector3D b = m_verts[m_faces[i][2]] - m_verts[m_faces[i][0]];
+				
+				// Compute norm of triangle
+				Vector3D n = a.cross(b);
+				n.normalize();
+				
+				// Update ray
+				ray.t = t;
+				// std::cout << "t\t" << t << std::endl;
+				ray.n = n;
+				ray.setHit(true);				
+				ray.hitPos = ray.getHitPos();
+				ret = true;
+			}	
+		}
+	}
+	
+	return ret;
+	
 	// Iterate through each face
 	for (int i = 0;i<m_faces.size();i++)
 	{
@@ -96,7 +164,8 @@ bool Mesh::hit (Ray& ray, double epsilon)
 	if (index != -1)
 	{
 		// We have a valid hit
-		ray = duplicateRay;		
+		ray = duplicateRay;
+		std::cout << ray.getHitPos() << "\n";
 		return true;
 	}	
 	

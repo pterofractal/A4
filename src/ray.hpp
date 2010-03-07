@@ -18,6 +18,8 @@ class Ray {
 		
 		bool secondaryRay;
 		
+		// Hit position
+		Point3D hitPos;
 		
 		Ray();
 		Ray(const Point3D& origin, const Vector3D& dir);
@@ -33,6 +35,8 @@ class Ray {
 			t = other.t;
 			material = other.material;
 			hit = other.isHit();
+			
+			hitPos = other.hitPos;
 			return *this;
 		}
 		

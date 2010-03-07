@@ -84,9 +84,20 @@ bool SceneNode::hit(Ray* ray, double epsilon)
 	// Restore ray
 	ray->origin = m_trans * ray->origin;
 	ray->dir = m_trans * ray->dir;
-	ray->n = m_invtrans.transpose() * ray->n;
-	ray->n.normalize();
+	ray->hitPos = m_trans * ray->hitPos;
 
+	
+	if (ret)
+	{
+		ray->n = m_invtrans.transpose() * ray->n;
+		ray->n.normalize();
+	}
+		
+	ray->dir.normalize();
+
+	if (ret)
+		assert(ray->n.length() > epsilon);
+		
 	return ret;	
 }
 
@@ -137,11 +148,11 @@ bool GeometryNode::hit(Ray *ray, double epsilon)
 {
 	ChildList temp = m_children;
 	ChildList::iterator i;
-		
+	
 	// Transform ray
 	ray->origin = m_invtrans * ray->origin;
 	ray->dir = m_invtrans * ray->dir;
-
+	
 	// Intersect with primitive
 	bool ret = false;
 		
@@ -161,8 +172,16 @@ bool GeometryNode::hit(Ray *ray, double epsilon)
 	// Restore ray
 	ray->origin = m_trans * ray->origin;
 	ray->dir = m_trans * ray->dir;
-	ray->n = m_invtrans.transpose() * ray->n;
-	ray->n.normalize();
+	ray->hitPos = m_trans * ray->hitPos;
+	
+	if (ret)
+	{
+		ray->n = m_invtrans.transpose() * ray->n;
+		ray->n.normalize();
+	}
+		
+	// Normalize vectors
+	ray->dir.normalize();
 	
 	return ret;
 }

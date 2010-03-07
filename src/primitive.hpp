@@ -4,6 +4,7 @@
 #include "algebra.hpp"
 #include "ray.hpp"
 
+
 class Primitive {
 public:
 	virtual ~Primitive();

@@ -7,6 +7,7 @@
 // Class with simple functions
 
 
+
 Vector3D get_normal_for_cube(int face)
 {
 	switch (face)
@@ -42,5 +43,8 @@ double min (double a, double b)
 		return a;
 	return b;
 }
+
+
+
 
 #endif

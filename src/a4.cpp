@@ -1,10 +1,20 @@
 #include "a4.hpp"
 #include "image.hpp"
 #include "algebra.hpp"
+
 #include <math.h>
 
 Matrix4x4 transformationMatrix;
 pthread_mutex_t mutex1;
+void testtest(Ray* ray)
+{
+	pthread_mutex_lock(&mutex1);
+	//if (ray.dir.length() < 1)
+	//	std::cerr << "err dir\t" << ray.dir << " length " << ray.dir.length() << std::endl;
+	if (ray->n.length() < 1)
+		std::cerr << "err\t" << ray->n << " length " << ray->n.length() << std::endl;
+	pthread_mutex_unlock(&mutex1);
+}
 
 void a4_render(// What to render
                SceneNode* root,
@@ -21,17 +31,18 @@ void a4_render(// What to render
                )
 {
   // Fill in raytracing code here.
+	pthread_mutex_init(&mutex1, NULL);
+	std::cout << "Stub: a4_render(" << root << ",\nFile name:\t     "
+		        << filename << ", " << width << ", " << height << ",\nEye:\t     "
+		        << eye << ", " << view << ", " << up << ", " << fov << ",\nAmbient:\t     "
+		        << ambient << ",\n     {";
 
-  std::cout << "Stub: a4_render(" << root << ",\nFile name:\t     "
-            << filename << ", " << width << ", " << height << ",\nEye:\t     "
-            << eye << ", " << view << ", " << up << ", " << fov << ",\nAmbient:\t     "
-            << ambient << ",\n     {";
-
-  for (std::list<Light*>::const_iterator I = lights.begin(); I != lights.end(); ++I) {
-    if (I != lights.begin()) std::cout << ", ";
-    std::cout << **I;
-  }
-  std::cout << "});" << std::endl;
+	for (std::list<Light*>::const_iterator I = lights.begin(); I != lights.end(); ++I) 
+	{
+		if (I != lights.begin()) std::cout << ", ";
+			std::cout << **I;
+	}
+	std::cout << "});" << std::endl;
   
 	double L_in[lights.size()];
 	int index = 0;
@@ -76,12 +87,16 @@ void a4_render(// What to render
 	T[2][3] = eye[2];
 	
 	transformationMatrix = T * R * S * M;
-	int numThreads = 20;
+	int numThreads = 50;
 	TraceArgs traceArgs[numThreads];
 	pthread_t threads[numThreads]; 
+	
+//	Image background(1600, 1066, 3);
+//	background.loadPng("bg.png");
 
 	for (int i = 0;i<numThreads;i++)
 	{
+	//	traceArgs[i].background = background;
 		traceArgs[i].img = &img;
 		traceArgs[i].lights = &lights;
 		traceArgs[i].eye = eye;
@@ -101,7 +116,7 @@ void a4_render(// What to render
 		traceArgs[i].xMax = width;
 		traceArgs[i].yMin = (i) * sections * height;
 		traceArgs[i].yMax = (i+1) * sections * height;
-		std::cout << traceArgs[i].xMin << "\t" << traceArgs[i].xMax << "\t" << traceArgs[i].yMin << "\t" << traceArgs[i].yMax << std::endl;
+		//std::cout << traceArgs[i].xMin << "\t" << traceArgs[i].xMax << "\t" << traceArgs[i].yMin << "\t" << traceArgs[i].yMax << std::endl;
 
 		if (errcode=pthread_create(&threads[i],					 
 									NULL,						 
@@ -249,7 +264,7 @@ void *ray_trace(void *arg)
 	//ray->dir = view;
 	ray->origin = traceArgs.eye;
 	Point3D pixelWorld;
-	int samples = 4;
+	int samples = 1;
 	for (int y = traceArgs.yMin;y<traceArgs.yMax;y++)
 	{
 		for (int x = traceArgs.xMin;x<traceArgs.xMax;x++)
@@ -274,12 +289,15 @@ void *ray_trace(void *arg)
 					// Determine the direction of the ray
 					ray->dir = pixelWorld - traceArgs.eye;
 					ray->dir.normalize();
-
 					// Intersect the ray with all the objects
 					traceArgs.root->hit(ray, 0.0000000001);
 
 					if (ray->isHit())
 					{
+			//			assert(ray->dir.length() > 0.9999999);
+					//	assert(ray->dir.length() == 1);
+					//	testtest(ray);
+				//		assert(ray->n.length() == 1);
 						// Iterate through each light source
 						for (std::list<Light*>::const_iterator I = lights.begin(); I != lights.end(); ++I) 
 						{
@@ -362,7 +380,7 @@ void *ray_trace(void *arg)
 					double gradient = (1.0 * y)/traceArgs.height;
 					(*traceArgs.img)(x, y, 0) = 0;
 					(*traceArgs.img)(x, y, 1) = 0;
-					(*traceArgs.img)(x, y, 2) = gradient * gradient;
+					(*traceArgs.img)(x, y, 2) = (gradient * gradient);
 				}
 				else
 				{
@@ -378,15 +396,6 @@ void *ray_trace(void *arg)
 					(*traceArgs.img)(x, y, 2) = averageRoh.B();
 				}			
 				hitSomething = false;
-/*			}
-			else
-			{
-				// Create blue gradient by default if ray misses
-				double gradient = (1.0 * y)/traceArgs.height;
-				(*traceArgs.img)(x, y, 0) = 0;
-				(*traceArgs.img)(x, y, 1) = 0;
-				(*traceArgs.img)(x, y, 2) = gradient * gradient;
-			}*/
 		}	
 	}
 	delete(ray);

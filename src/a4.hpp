@@ -29,6 +29,7 @@ struct TraceArgs {
 	SceneNode* root;
 	Colour ambient;
 	int xMin, xMax, yMin, yMax, height;	
+	Image background;
 };
 
 void *ray_trace(void *arg);

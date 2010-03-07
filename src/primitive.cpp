@@ -1,6 +1,8 @@
 #include "primitive.hpp"
 #include "polyroots.hpp"
+
 #include "util.hpp"
+
 pthread_mutex_t mutex3;
 
 Primitive::~Primitive()
@@ -54,7 +56,8 @@ bool Sphere::hit(Ray& ray, double epsilon)
 			
 		ray.n = Vector3D(ray.origin[0] + t * ray.dir[0] - m_pos[0], ray.origin[1] + t * ray.dir[1] - m_pos[1], ray.origin[2] + t * ray.dir[2] - m_pos[2]);
 		ray.n.normalize();
-		ray.t = t;			
+		ray.t = t;	
+		ray.hitPos = ray.getHitPos();		
 		ray.setHit(true);
 		
 		return true;
@@ -177,6 +180,7 @@ bool Cube::hit(Ray& ray, double epsilon)
 
 			// std::cout << ray;
 			ray.t = tmin;
+			ray.hitPos = ray.getHitPos();
 			ray.setHit(true);
 			return (true);
 		}
@@ -231,7 +235,8 @@ bool NonhierSphere::hit(Ray& ray, double epsilon)
 
 		ray.n = Vector3D(ray.origin[0] + t * ray.dir[0] - m_pos[0], ray.origin[1] + t * ray.dir[1] - m_pos[1], ray.origin[2] + t * ray.dir[2] - m_pos[2]);
 		ray.n.normalize();
-		ray.t = t;			
+		ray.t = t;		
+		ray.hitPos = ray.getHitPos();	
 		ray.setHit(true);
 		
 		return true;
@@ -440,6 +445,7 @@ bool NonhierBox::hit(Ray& ray, double epsilon)
 			return false;
 		
 		ray.t = tmin;
+		ray.hitPos = ray.getHitPos();
 //		ray.n = get_normal(face_out);
 		ray.setHit(true);
 		return (true);
@@ -466,7 +472,7 @@ bool Plane::hit(Ray& ray, double epsilon)
 	denom = ray.dir.dot(normal);
 	double t = (pos - ray.origin).dot(normal) / (ray.dir.dot(normal));
 	
-	if (ray.isHit() && ray.t < t)
+	if (ray.isHit() && ray.t < t) //|| ((ray.hitPos - ray.origin).length() < (ray.getHitPos(t) - ray.origin).length() ) )
 	{
 		return false;
 	}
@@ -476,6 +482,7 @@ bool Plane::hit(Ray& ray, double epsilon)
 	if (t > epsilon)
 	{
 		ray.t = t;
+		ray.hitPos = ray.getHitPos();
 		ray.n = normal;
 		ray.setHit(true);
 		return true;
