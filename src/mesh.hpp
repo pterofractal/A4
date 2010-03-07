@@ -44,6 +44,9 @@ private:
   std::vector<Point3D> m_verts;
   std::vector<Face> m_faces;
 
+	Point3D mid;
+	double sphereRad;
+
   friend std::ostream& operator<<(std::ostream& out, const Mesh& mesh);
 };
 

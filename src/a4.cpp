@@ -6,6 +6,8 @@
 
 Matrix4x4 transformationMatrix;
 pthread_mutex_t mutex1;
+const int numThreads = 50;
+const int samples = 1;
 void testtest(Ray* ray)
 {
 	pthread_mutex_lock(&mutex1);
@@ -87,16 +89,16 @@ void a4_render(// What to render
 	T[2][3] = eye[2];
 	
 	transformationMatrix = T * R * S * M;
-	int numThreads = 50;
+
 	TraceArgs traceArgs[numThreads];
 	pthread_t threads[numThreads]; 
 	
-//	Image background(1600, 1066, 3);
-//	background.loadPng("bg.png");
+	Image background(400, 400, 3);
+	background.loadPng("background.png");
 
 	for (int i = 0;i<numThreads;i++)
 	{
-	//	traceArgs[i].background = background;
+		traceArgs[i].background = background;
 		traceArgs[i].img = &img;
 		traceArgs[i].lights = &lights;
 		traceArgs[i].eye = eye;
@@ -264,7 +266,6 @@ void *ray_trace(void *arg)
 	//ray->dir = view;
 	ray->origin = traceArgs.eye;
 	Point3D pixelWorld;
-	int samples = 1;
 	for (int y = traceArgs.yMin;y<traceArgs.yMax;y++)
 	{
 		for (int x = traceArgs.xMin;x<traceArgs.xMax;x++)
@@ -278,10 +279,20 @@ void *ray_trace(void *arg)
 				{
 					float r = (float)rand()/(float)RAND_MAX;
 					// Start with screen position
-					pixelWorld[0] = x + (k + r)/samples;
-					pixelWorld[1] = y + (j + r)/samples;
-					pixelWorld[2] = 0;
-
+					
+					if (samples != 1)
+					{
+						pixelWorld[0] = x + (k + r)/samples;
+						pixelWorld[1] = y + (j + r)/samples;	
+					}
+					else
+					{
+						pixelWorld[0] = x;
+						pixelWorld[1] = y;
+					}
+					pixelWorld[2] = 0;						
+					
+				
 					// Push screen pixel through each transformation			
 					pixelWorld = transformationMatrix * pixelWorld;
 
@@ -349,7 +360,6 @@ void *ray_trace(void *arg)
 								// Calculate the attenuation
 								double atten = 1 / (l->falloff[0] + l->falloff[1] * dist + l->falloff[2] * dist * dist);
 
-							//	std::cout << "spec:\t" << specular << "\td\t" << diffuse << "\tlight\t" << l->colour * atten << "\troh" << roh << "\tatten\t" << atten <<"\n";
 								// Bring values together
 								roh[j][k] = roh[j][k] + specular + diffuse * l->colour * atten;
 							}
@@ -378,9 +388,9 @@ void *ray_trace(void *arg)
 				{
 					// Create blue gradient by default if ray misses
 					double gradient = (1.0 * y)/traceArgs.height;
-					(*traceArgs.img)(x, y, 0) = 0;
-					(*traceArgs.img)(x, y, 1) = 0;
-					(*traceArgs.img)(x, y, 2) = (gradient * gradient);
+					(*traceArgs.img)(x, y, 0) = traceArgs.background(x%400, y%400, 0);
+					(*traceArgs.img)(x, y, 1) = traceArgs.background(x%400, y%400, 1);
+					(*traceArgs.img)(x, y, 2) = traceArgs.background(x%400, y%400, 2);
 				}
 				else
 				{

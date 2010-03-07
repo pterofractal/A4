@@ -7,6 +7,36 @@ Mesh::Mesh(const std::vector<Point3D>& verts,
   : m_verts(verts),
     m_faces(faces)
 {
+	Point3D min, max;
+	min = m_verts[0];
+	max = m_verts[0];
+	for (int i = 1;i<m_verts.size()-1;i++)
+	{
+		if (min[0] > m_verts[i][0])
+			min[0] = m_verts[i][0];
+			
+		if (min[1] > m_verts[i][1])
+			min[1] = m_verts[i][1];
+			
+		if (min[2] > m_verts[i][2])
+			min[2] = m_verts[i][2];
+		
+		if (max[0] < m_verts[i][0])
+			max[0] = m_verts[i][0];
+		
+		if (max[1] < m_verts[i][1])
+			max[1] = m_verts[i][1];
+			
+		if (max[2] < m_verts[i][2])
+			max[2] = m_verts[i][2];			
+	}
+
+	mid = Point3D(min[0] + max[0], min[1] + max[1], min[2] + max[2]);
+	mid[0] /= 2.0;
+	mid[1] /= 2.0;
+	mid[2] /= 2.0;
+	sphereRad = (mid - min).length();
+		
 }
 
 std::ostream& operator<<(std::ostream& out, const Mesh& mesh)
@@ -33,28 +63,36 @@ std::ostream& operator<<(std::ostream& out, const Mesh& mesh)
 
 bool Mesh::hit (Ray& ray, double epsilon)
 {
+	// Bounding sphere
+	NonhierSphere boundingSphere(mid, sphereRad);
+	
 	// duplicateRay is simply used as a backup so that we don't destroy valid
 	// values inside ray
 	Ray duplicateRay = ray;
 	
-	// backUp is used to restore duplicateRay to last valid ray intersection with a 
-	// plane of the mesh
-	Ray backUp = duplicateRay;
+	Ray backUp = ray;
 	
+	// Check if ray hits bounding sphere
+	if (!boundingSphere.hit(duplicateRay, epsilon))
+		return false;
+	
+	duplicateRay = ray;
 	// index is used to determine which plane was hit
 	int index = -1;
-	
+
+	// Matrices and vectors for Cramers rule
 	Matrix4x4 D1, D2, D3, D;
 	Vector3D vec1, vec2, vec3, vec4;
 	bool ret = false;
+
 	// Column 3 from D
 	vec3 = ray.dir;
-	for (int i = 0;i<m_faces.size();i++)
+	for (unsigned int i = 0;i<m_faces.size();i++)
 	{
 		
 		// The RHS of the equation
 		vec4 = ray.origin - m_verts[m_faces[i][0]];
-		for (int j = 1;j<m_faces[i].size() - 1;j++)
+		for (unsigned int j = 1;j<m_faces[i].size() - 1;j++)
 		{
 			// Column 1 of D
 			vec1 = m_verts[m_faces[i][j]] - m_verts[m_faces[i][0]];
@@ -113,7 +151,7 @@ bool Mesh::hit (Ray& ray, double epsilon)
 	return ret;
 	
 	// Iterate through each face
-	for (int i = 0;i<m_faces.size();i++)
+	for (unsigned int i = 0;i<m_faces.size();i++)
 	{
 		// We need at least 3 points to define a plane
 		if (m_faces[i].size() >= 3)
@@ -136,7 +174,7 @@ bool Mesh::hit (Ray& ray, double epsilon)
 				bool pointInPlane = false;
 				
 				// Divide plane into triangles and check each triangle for the point
-				for (int j = 1;j<m_faces[i].size() - 1;j++)
+				for (unsigned int j = 1;j<m_faces[i].size() - 1;j++)
 				{
 					if (pointInTriangle(duplicateRay.getHitPos(), m_verts[m_faces[i][0]], m_verts[m_faces[i][j]], m_verts[m_faces[i][j+1]]))
 					{

@@ -75,6 +75,9 @@ bool SceneNode::hit(Ray* ray, double epsilon)
 	// Transform ray
 	ray->origin = m_invtrans * ray->origin;
 	ray->dir = m_invtrans * ray->dir;
+	Vector3D temp2 = ray->dir;
+	
+	ray->dir.normalize();
 	
 	for ( i = temp.begin() ; i != temp.end(); i++ )
 	{
@@ -82,6 +85,7 @@ bool SceneNode::hit(Ray* ray, double epsilon)
 	}
 
 	// Restore ray
+	ray->dir = temp2;
 	ray->origin = m_trans * ray->origin;
 	ray->dir = m_trans * ray->dir;
 	ray->hitPos = m_trans * ray->hitPos;
@@ -94,9 +98,6 @@ bool SceneNode::hit(Ray* ray, double epsilon)
 	}
 		
 	ray->dir.normalize();
-
-	if (ret)
-		assert(ray->n.length() > epsilon);
 		
 	return ret;	
 }
@@ -152,6 +153,9 @@ bool GeometryNode::hit(Ray *ray, double epsilon)
 	// Transform ray
 	ray->origin = m_invtrans * ray->origin;
 	ray->dir = m_invtrans * ray->dir;
+	Vector3D temp2 = ray->dir;
+	
+	ray->dir.normalize();
 	
 	// Intersect with primitive
 	bool ret = false;
@@ -170,6 +174,7 @@ bool GeometryNode::hit(Ray *ray, double epsilon)
 	}
 		
 	// Restore ray
+	ray->dir = temp2;
 	ray->origin = m_trans * ray->origin;
 	ray->dir = m_trans * ray->dir;
 	ray->hitPos = m_trans * ray->hitPos;
