@@ -52,6 +52,7 @@ for _, spec in pairs({
    part:set_material(hide)
    cow:add_child(part)
 end
+--	cow:scale(1.4, 1.4, 1.4)
 
 -- ##############################################
 -- the scene
@@ -80,7 +81,7 @@ plane:scale(30, 30, 30)
 
 require('buckyball')
 
-scene:add_child(buckyball)
+--scene:add_child(buckyball)
 buckyball:set_material(stone)
 buckyball:scale(1.5, 1.5, 1.5)
 
@@ -98,7 +99,7 @@ for _, pt in pairs({
    cow_instance:add_child(cow)
    cow_instance:translate(unpack(pt[1]))
    cow_instance:rotate('Y', pt[2])
- --  cow_instance:scale(1.4, 1.4, 1.4)
+   cow_instance:scale(1.4, 1.4, 1.4)
    
    cow_number = cow_number + 1
 end
@@ -108,7 +109,7 @@ end
 for i = 1, 6 do
    an_arc = gr.node('arc' .. tostring(i))
    an_arc:rotate('Y', (i-1) * 60)
-   scene:add_child(an_arc)
+  -- scene:add_child(an_arc)
    an_arc:add_child(arc)
 end
 

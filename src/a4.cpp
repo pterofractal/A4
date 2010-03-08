@@ -7,7 +7,7 @@
 Matrix4x4 transformationMatrix;
 pthread_mutex_t mutex1;
 const int numThreads = 50;
-const int samples = 1;
+const int samples = 3;
 void testtest(Ray* ray)
 {
 	pthread_mutex_lock(&mutex1);
@@ -61,7 +61,8 @@ void a4_render(// What to render
 	M[2][3] = d;
 	
 	// Scale Matrix
-	double h = 3 * d * tan (fov);
+	fov = -1 * fov * M_PI / 180;
+	double h = 2 * d * tan (fov / 2.0);
 	S[0][0] = h / height;
 	S[1][1] = h / height;
 	
@@ -136,6 +137,10 @@ void a4_render(// What to render
 		if (errcode=pthread_join(threads[i],NULL))
 		{ 
 			std::cerr << errcode << "join\n";
+		}
+		else 
+		{
+			std::cout << "Thread " << i << " complete\n";
 		}
 	}
 	/*
@@ -305,10 +310,7 @@ void *ray_trace(void *arg)
 
 					if (ray->isHit())
 					{
-			//			assert(ray->dir.length() > 0.9999999);
-					//	assert(ray->dir.length() == 1);
-					//	testtest(ray);
-				//		assert(ray->n.length() == 1);
+						//std::cout << "t\t\t" << ray->t << "\n";
 						// Iterate through each light source
 						for (std::list<Light*>::const_iterator I = lights.begin(); I != lights.end(); ++I) 
 						{
@@ -388,9 +390,9 @@ void *ray_trace(void *arg)
 				{
 					// Create blue gradient by default if ray misses
 					double gradient = (1.0 * y)/traceArgs.height;
-					(*traceArgs.img)(x, y, 0) = traceArgs.background(x%400, y%400, 0);
-					(*traceArgs.img)(x, y, 1) = traceArgs.background(x%400, y%400, 1);
-					(*traceArgs.img)(x, y, 2) = traceArgs.background(x%400, y%400, 2);
+					(*traceArgs.img)(x, y, 0) = traceArgs.background(x%300, y%300, 0);
+					(*traceArgs.img)(x, y, 1) = traceArgs.background(x%300, y%300, 1);
+					(*traceArgs.img)(x, y, 2) = traceArgs.background(x%300, y%300, 2);
 				}
 				else
 				{

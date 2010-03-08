@@ -49,6 +49,7 @@ void SceneNode::scale(const Vector3D& amount)
 	temp[0][0] = amount[0];
 	temp[1][1] = amount[1];
 	temp[2][2] = amount[2];
+	
 	set_transform(m_trans * temp);
 }
 
@@ -77,7 +78,7 @@ bool SceneNode::hit(Ray* ray, double epsilon)
 	ray->dir = m_invtrans * ray->dir;
 	Vector3D temp2 = ray->dir;
 	
-	ray->dir.normalize();
+//	ray->dir.normalize();
 	
 	for ( i = temp.begin() ; i != temp.end(); i++ )
 	{
@@ -97,7 +98,7 @@ bool SceneNode::hit(Ray* ray, double epsilon)
 		ray->n.normalize();
 	}
 		
-	ray->dir.normalize();
+//	ray->dir.normalize();
 		
 	return ret;	
 }
@@ -155,7 +156,7 @@ bool GeometryNode::hit(Ray *ray, double epsilon)
 	ray->dir = m_invtrans * ray->dir;
 	Vector3D temp2 = ray->dir;
 	
-	ray->dir.normalize();
+//	ray->dir.normalize();
 	
 	// Intersect with primitive
 	bool ret = false;
@@ -186,7 +187,7 @@ bool GeometryNode::hit(Ray *ray, double epsilon)
 	}
 		
 	// Normalize vectors
-	ray->dir.normalize();
+//	ray->dir.normalize();
 	
 	return ret;
 }
