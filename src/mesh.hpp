@@ -13,8 +13,8 @@ public:
   Mesh(const std::vector<Point3D>& verts,
        const std::vector< std::vector<int> >& faces);
 
-		virtual bool hit (Ray& ray, double episilon);
-  typedef std::vector<int> Face;
+	virtual bool hit (Ray& ray, double episilon);
+	typedef std::vector<int> Face;
   
 	bool sameSide(Point3D p1, Point3D p2, Point3D a, Point3D b)
 	{

@@ -16,8 +16,8 @@ xMax = 10
 xMin = -10
 zMin = -30
 zMax = -10
-depth = -20
-n = 1
+depth = -30
+n = 1000
 -- Corner 1
 sphere = gr.sphere('corner1')
 sphere:translate(0, yMax, depth)
@@ -101,11 +101,29 @@ plane = gr.mesh('plane', {
 		}, {
 		   {3, 2, 1, 0}
 		})
-plane:scale(50, 15, 100)
+plane:scale(50, 20, 100)
 scene:add_child(plane)
 plane:set_material(grass)
 
 -- set up cow
+cowMat = {}
+for j = 1, 9 do
+	cowMat[j] = {}
+	for k = 1, 4 do
+		cowMat[j][k] = gr.mesh('cow', readobj('cow.obj'))
+		factor = 2.0/(2.76+3.637)
+
+		cowMat[j][k]:set_material(hide)
+		factor = 2.0/(2.76+3.637)
+
+		cowMat[j][k]:set_material(hide)
+
+		cowMat[j][k]:translate(0.0, -1.0, 0.0)
+		cowMat[j][k]:scale(factor, factor, factor)
+		cowMat[j][k]:translate(0.0, 3.637, 0.0)
+	end
+end
+		
 cow_poly = gr.mesh('cow', readobj('cow.obj'))
 factor = 2.0/(2.76+3.637)
 
@@ -118,16 +136,27 @@ cow_poly:translate(0.0, -1.0, 0.0)
 cow_poly:scale(factor, factor, factor)
 cow_poly:translate(0.0, 3.637, 0.0)
 
+
+
+-- Army of cows
 cow_number = 1
+colMat = {}
 for j = 1, 9 do
+	colMat[j] = {}
 	for k = 1, 4 do
-		simSphere = gr.sphere('x' .. tostring(cow_number))
-		col = gr.material({j/9, k/4, 0}, {0.3, 0.3, 0.3}, 20)
-		simSphere:set_material(col)
+		colMat[j][k] = gr.material({j/9, 0, k/4}, {0.3, 0.3, 0.3}, 20)
+
+		simSphere = gr.sphere('x' .. tostring(cow_number))	
+		simSphere:translate(0.0, -1.0, 0.0)
+		simSphere:scale(factor, factor, factor)
+		simSphere:translate(0.0, 3.637, 0.0)
+		simSphere:set_material(colMat[j][k])
+
+		cowMat[j][k]:set_material(colMat[j][k])
 		cow_instance = gr.node('cow' .. tostring(cow_number))
-		scene:add_child(cow_instance)
-		cow_instance:add_child(simSphere)
-		cow_instance:translate(-15 + j * 3, -13.7, - k * 5)
+	--	scene:add_child(cow_instance)
+		cow_instance:add_child(cowMat[j][k])
+		cow_instance:translate(-15 + j * 3, -13.7, 5 - k * 5)
 		cow_instance:rotate('Y', 90)
 		cow_instance:scale(1.4, 1.4, 1.4)
 
@@ -135,9 +164,19 @@ for j = 1, 9 do
 	  end
 end
 
+-- Cow hero
+whiteCol = gr.material({0.7, 0.788, 0.7}, {0.4, 0.4, 0.4}, 20)
+cow_poly:set_material(whiteCol)
+cowHero = gr.node('cow' .. tostring(cow_number))
+--	chromechrome
+scene:add_child(cowHero)
+cowHero:add_child(cow_poly)
+cowHero:translate(0, -17, -30)
+cowHero:rotate('Y', 270)
+cowHero:scale(5, 5, 5)
 
 gr.render(scene,
-	  'macho_cows.png', 512, 512,
+	  'sierpinski.png', 128, 128,
 	  {0, 2, 30}, {0, 0, -1}, {0, 1, 0}, 50,
 	  {0.4, 0.4, 0.4}, {gr.light({200, 202, 430}, {0.8, 0.8, 0.8}, {1, 0, 0})})
 	

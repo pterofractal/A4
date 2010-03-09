@@ -7,7 +7,7 @@
 Matrix4x4 transformationMatrix;
 pthread_mutex_t mutex1;
 const int numThreads = 50;
-const int samples = 5;
+const int samples = 1;
 
 void testtest(Ray* ray)
 {
@@ -239,7 +239,6 @@ void *ray_trace(void *arg)
 							{
 								if (ray->n.dot(directionOfLight) < 0)
 								{
-									//std::cerr << x << ", " << y << std::endl;
 									ray->n = -1 * ray->n;
 								}
 								
@@ -285,12 +284,7 @@ void *ray_trace(void *arg)
 				{
 					for (int k=0;k<samples;k++)
 					{
-					//	if (roh[j][k].R() > 0.000001 || roh[j][k].G() > 0.000001 || roh[j][k].B() > 0.000001)
-					//	{
-							averageRoh = averageRoh + roh[j][k];
-						//	successfulSamples++;
-					//	}
-							
+						averageRoh = averageRoh + roh[j][k];	
 					}
 				}
 
@@ -298,9 +292,6 @@ void *ray_trace(void *arg)
 				{
 					// Create blue gradient by default if ray misses
 					double gradient = (1.0 * y)/traceArgs.height;
-/*					(*traceArgs.img)(x, y, 0) = 0;
-					(*traceArgs.img)(x, y, 1) = 0;
-					(*traceArgs.img)(x, y, 2) = gradient * gradient;*/	
 					(*traceArgs.img)(x, y, 0) = traceArgs.background(x%300, y%300, 0);
 					(*traceArgs.img)(x, y, 1) = traceArgs.background(x%300, y%300, 1);
 					(*traceArgs.img)(x, y, 2) = traceArgs.background(x%300, y%300, 2);

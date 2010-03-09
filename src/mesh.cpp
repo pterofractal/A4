@@ -75,7 +75,7 @@ bool Mesh::hit (Ray& ray, double epsilon)
 	// Check if ray hits bounding sphere
 	if (!boundingSphere.hit(duplicateRay, epsilon))
 		return false;
-	
+		
 	duplicateRay = ray;
 	// index is used to determine which plane was hit
 	int index = -1;
