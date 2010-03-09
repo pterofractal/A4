@@ -17,7 +17,7 @@ xMin = -10
 zMin = -30
 zMax = -10
 depth = -20
-n = 600
+n = 1
 -- Corner 1
 sphere = gr.sphere('corner1')
 sphere:translate(0, yMax, depth)
@@ -121,9 +121,12 @@ cow_poly:translate(0.0, 3.637, 0.0)
 cow_number = 1
 for j = 1, 9 do
 	for k = 1, 4 do
+		simSphere = gr.sphere('x' .. tostring(cow_number))
+		col = gr.material({j/9, k/4, 0}, {0.3, 0.3, 0.3}, 20)
+		simSphere:set_material(col)
 		cow_instance = gr.node('cow' .. tostring(cow_number))
 		scene:add_child(cow_instance)
-		cow_instance:add_child(cow_poly)
+		cow_instance:add_child(simSphere)
 		cow_instance:translate(-15 + j * 3, -13.7, - k * 5)
 		cow_instance:rotate('Y', 90)
 		cow_instance:scale(1.4, 1.4, 1.4)
@@ -131,6 +134,18 @@ for j = 1, 9 do
 		cow_number = cow_number + 1
 	  end
 end
+
+
+gr.render(scene,
+	  'macho_cows.png', 512, 512,
+	  {0, 2, 30}, {0, 0, -1}, {0, 1, 0}, 50,
+	  {0.4, 0.4, 0.4}, {gr.light({200, 202, 430}, {0.8, 0.8, 0.8}, {1, 0, 0})})
+	
+	
+	
+	
+	
+	
 
 --[[
 for _, pt in pairs({
@@ -161,7 +176,3 @@ gr.render(scene,
 	  {0, 0, 30}, {0, 0, -50}, {0, 1, 0}, 50,
 	  {0.4, 0.4, 0.4}, {gr.light({100, 100, 400}, {0.8, 0.8, 0.8}, {1, 0, 0})})
 --]]
-gr.render(scene,
-	  'macho_cows.png', 512, 512,
-	  {0, 2, 30}, {0, 0, -1}, {0, 1, 0}, 50,
-	  {0.4, 0.4, 0.4}, {gr.light({200, 202, 430}, {0.8, 0.8, 0.8}, {1, 0, 0})})

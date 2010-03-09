@@ -7,7 +7,8 @@
 Matrix4x4 transformationMatrix;
 pthread_mutex_t mutex1;
 const int numThreads = 50;
-const int samples = 1;
+const int samples = 5;
+
 void testtest(Ray* ray)
 {
 	pthread_mutex_lock(&mutex1);
@@ -53,7 +54,7 @@ void a4_render(// What to render
 	Matrix4x4  T, R, S, M;
 	Point3D pixelWorld;
 	
-	double d = 1000;
+	double d = 100;
 	
 	// Move Matrix
 	M[0][3] = -1 * width / 2.0;
@@ -143,119 +144,6 @@ void a4_render(// What to render
 			std::cout << "Thread " << i << " complete\n";
 		}
 	}
-	/*
-	
-	Ray *ray = new Ray();
-	//ray->dir = view;
-	ray->origin = eye;
-	for (int y = 0;y<height;y++)
-	{
-		for (int x = 0;x<width;x++)
-		{
-			// Start with screen position
-			pixelWorld[0] = x;
-			pixelWorld[1] = y;
-			pixelWorld[2] = 0;
-			
-			// Push screen pixel through each transformation			
-			pixelWorld = M * pixelWorld;
-			pixelWorld = S * pixelWorld;
-			pixelWorld = R * pixelWorld;
-			pixelWorld = T * pixelWorld;
-		
-			//std::cout << "pixel:(" << x << ", " << y << ")\tpixel world: " << pixelWorld << "\tray dir: " << (pixelWorld - eye) << "\n";	
-			// Determine the direction of the ray
-			ray->dir = pixelWorld - eye;
-			ray->dir.normalize();
-			
-			// Intersect the ray with all the objects
-			root->hit(ray, 0.0000000001);
-			
-			if (ray->isHit())
-			{
-				// Colour variable that will be used to determine colour for a particular pixel
-				Colour roh(0,0,0);
-				
-				// Iterate through each light source
-				for (std::list<Light*>::const_iterator I = lights.begin(); I != lights.end(); ++I) 
-				{
-					// Get light pointer
-					Light *l = *I;
-
-					// Colour values for diffuse and specular
-					Colour diffuse, specular;
-
-					// Determine the direction of light
-					Vector3D directionOfLight = l->position - ray->getHitPos();
-					
-					// Calculate how far the light is from the hit position
-					
-					double dist = directionOfLight.length();
-					
-					// Normalize direction of light
-					directionOfLight.normalize();
-					
-					// Construct a ray representing the light
-					Ray *lightRay = new Ray(ray->getHitPos(), directionOfLight);
-					lightRay->setHit(false);
-					lightRay->secondaryRay = true;
-					root->hit(lightRay, 0.0000000001);
-					if (!lightRay->isHit() || (lightRay->isHit() && dist < (lightRay->getHitPos() - ray->getHitPos()).length() ) ) 
-					{
-						// If the light ray doesn't hit anything then the light from 
-						// the light source reaches the hit point
-
-						// Compute the reflection vector
-						Vector3D r = 2 * (directionOfLight.dot(ray->n))*ray->n - directionOfLight;
-						r.normalize();
-						
-						// Calculate the diffuse value
-						diffuse = ( (PhongMaterial *)ray->material)->get_kd();
-						diffuse = (directionOfLight.dot(ray->n)) * diffuse;
-						
-						// Calculate the specular value
-						specular = ( (PhongMaterial *)ray->material)->get_ks();
-						specular = pow(r.dot(ray->dir), ( (PhongMaterial *)ray->material)->get_shininess()) * specular;
-
-						// Need to make sure the specular value isn't negative
-						if (r.dot(ray->dir) < 0)
-							specular = -1 * specular;
-				
-						// Calculate the attenuation
-						double atten = 1 / (l->falloff[0] + l->falloff[1] * dist + l->falloff[2] * dist * dist);
-						
-					//	std::cout << "spec:\t" << specular << "\td\t" << diffuse << "\tlight\t" << l->colour * atten << "\troh" << roh << "\tatten\t" << atten <<"\n";
-						// Bring values together
-						roh = roh + specular + diffuse * l->colour * atten;
-					}
-					else
-					{
-						//Light is being blocked
-					}
-				}
-
-				// Add the ambient to our colour values
-				roh = roh + ambient;
-
-				//std::cout << "roh \t" << roh << "\n";
-				// Red: increasing from top to bottom
-				img(x, y, 0) = roh.R();
-				// Green: increasing from left to right
-				img(x, y, 1) = roh.G();
-				// Blue: in lowpper-right corners
-				img(x, y, 2) = roh.B();				
-			}
-			else
-			{
-				// Create blue gradient by default if ray misses
-				double gradient = (1.0 * y)/height;
-				img(x, y, 0) = 0;
-				img(x, y, 1) = 0;
-				img(x, y, 2) = gradient * gradient;
-			}
-			ray->setHit(false);
-		}	
-	}*/
 
   img.savePng("z" + filename);
   
@@ -268,9 +156,10 @@ void *ray_trace(void *arg)
 	TraceArgs traceArgs = *(TraceArgs *)arg;
 	std::list<Light*> lights =	*traceArgs.lights;
 	Ray *ray = new Ray();
-	//ray->dir = view;
 	ray->origin = traceArgs.eye;
 	Point3D pixelWorld;
+	double samplesD = samples;
+	
 	for (int y = traceArgs.yMin;y<traceArgs.yMax;y++)
 	{
 		for (int x = traceArgs.xMin;x<traceArgs.xMax;x++)
@@ -278,17 +167,18 @@ void *ray_trace(void *arg)
 			// Colour variable that will be used to determine colour for a particular pixel
 			Colour roh[samples][samples];
 			bool hitSomething = false;
+
 			for (int j = 0;j<samples;j++)
 			{
 				for (int k = 0;k<samples;k++)
-				{
-					float r = (float)rand()/(float)RAND_MAX;
+				{					
 					// Start with screen position
-					
 					if (samples != 1)
 					{
-						pixelWorld[0] = x + (k + r)/samples;
-						pixelWorld[1] = y + (j + r)/samples;	
+						float r = (float)rand() / (float)RAND_MAX;
+						// If we are taking more than 1 sample randomly add a small amount to our pixel
+						pixelWorld[0] = x + (k + r)/samplesD;
+						pixelWorld[1] = y + (j + r)/samplesD;
 					}
 					else
 					{
@@ -297,22 +187,27 @@ void *ray_trace(void *arg)
 					}
 					pixelWorld[2] = 0;						
 					
+					
 				
 					// Push screen pixel through each transformation			
 					pixelWorld = transformationMatrix * pixelWorld;
 
-					//std::cout << "pixel:(" << x << ", " << y << ")\tpixel world: " << pixelWorld << "\tray dir: " << (pixelWorld - eye) << "\n";	
 					// Determine the direction of the ray
 					ray->dir = pixelWorld - traceArgs.eye;
 					ray->dir.normalize();
+					
 					// Intersect the ray with all the objects
 					traceArgs.root->hit(ray, 0.0000000001);
-
+					Colour bgColour(traceArgs.background(x%300, y%300, 0), traceArgs.background(x%300, y%300, 1), traceArgs.background(x%300, y%300, 2));
+					roh[j][k] = bgColour;
+					
 					if (ray->isHit())
 					{
-						ray->n.normalize();
-						ray->dir.normalize();
-						//std::cout << "t\t\t" << ray->t << "\n";
+						// Add the ambient component
+						roh[j][k] = ( (PhongMaterial *)ray->material)->get_kd() * traceArgs.ambient;
+						
+						//ray->n.normalize();
+						//ray->dir.normalize();
 						// Iterate through each light source
 						for (std::list<Light*>::const_iterator I = lights.begin(); I != lights.end(); ++I) 
 						{
@@ -339,41 +234,44 @@ void *ray_trace(void *arg)
 							lightRay->setHit(false);
 							lightRay->secondaryRay = true;
 							traceArgs.root->hit(lightRay, 0.0000000001);
-											
+							
 							if (!lightRay->isHit() || (lightRay->isHit() && dist < (lightRay->getHitPos() - ray->getHitPos()).length() ) ) 
 							{
+								if (ray->n.dot(directionOfLight) < 0)
+								{
+									//std::cerr << x << ", " << y << std::endl;
+									ray->n = -1 * ray->n;
+								}
+								
 								// If the light ray doesn't hit anything then the light from 
 								// the light source reaches the hit point
-
+								
 								// Compute the reflection vector
 								Vector3D r = 2 * (directionOfLight.dot(ray->n))*ray->n - directionOfLight;
 								r.normalize();
 
 								// Calculate the diffuse value
 								diffuse = ( (PhongMaterial *)ray->material)->get_kd();
-								diffuse = traceArgs.ambient + diffuse;
-								diffuse = (directionOfLight.dot(ray->n)) * diffuse ;
+								diffuse = (directionOfLight.dot(ray->n)) * diffuse ;				
 								
-
 								// Calculate the specular value
 								specular = ( (PhongMaterial *)ray->material)->get_ks();
 								specular = pow(r.dot(ray->dir), ( (PhongMaterial *)ray->material)->get_shininess()) * specular;
 
-								// Need to make sure the specular value isn't negative
-								if (r.dot(ray->dir) < 0)
+								// Need to make sure the specular value isn't negative								
+								if (specular.R() < 0 && specular.G() < 0 && specular.B() < 0)
+								{
 									specular = -1 * specular;
-
+								}
 								// Calculate the attenuation
 								double atten = 1 / (l->falloff[0] + l->falloff[1] * dist + l->falloff[2] * dist * dist);
 
 								// Bring values together
-								roh[j][k] = roh[j][k] + specular + diffuse * l->colour * atten;
+								roh[j][k] = roh[j][k] + specular + diffuse * l->colour * atten;								
 							}
 							else
 							{
 								//Light is being blocked
-								// if (ray->name == "s")
-									// std::cout << lightRay->name << "\t\tdist: " << dist << "\t light hit dist: " << (lightRay->getHitPos() - ray->getHitPos()).normalize() << std::endl;  
 							}
 						}
 					}
@@ -382,11 +280,17 @@ void *ray_trace(void *arg)
 			}
 
 				Colour averageRoh;
+				//int successfulSamples = 0;
 				for (int j = 0;j<samples;j++)
 				{
 					for (int k=0;k<samples;k++)
 					{
-						averageRoh = averageRoh + roh[j][k];
+					//	if (roh[j][k].R() > 0.000001 || roh[j][k].G() > 0.000001 || roh[j][k].B() > 0.000001)
+					//	{
+							averageRoh = averageRoh + roh[j][k];
+						//	successfulSamples++;
+					//	}
+							
 					}
 				}
 
@@ -394,20 +298,24 @@ void *ray_trace(void *arg)
 				{
 					// Create blue gradient by default if ray misses
 					double gradient = (1.0 * y)/traceArgs.height;
+/*					(*traceArgs.img)(x, y, 0) = 0;
+					(*traceArgs.img)(x, y, 1) = 0;
+					(*traceArgs.img)(x, y, 2) = gradient * gradient;*/	
 					(*traceArgs.img)(x, y, 0) = traceArgs.background(x%300, y%300, 0);
 					(*traceArgs.img)(x, y, 1) = traceArgs.background(x%300, y%300, 1);
 					(*traceArgs.img)(x, y, 2) = traceArgs.background(x%300, y%300, 2);
-				}
+				}				
 				else
 				{
-					averageRoh = (1.0 / (samples * samples) ) * averageRoh;
-					// Add the ambient to our colour values
-/*					averageRoh = averageRoh + ambientFactor;*/
-
+					if (samples != 1)
+						averageRoh = (1.0 / (samples * samples) ) * averageRoh;
+					
 					// Red: increasing from top to bottom
 					(*traceArgs.img)(x, y, 0) = averageRoh.R();
+
 					// Green: increasing from left to right
 					(*traceArgs.img)(x, y, 1) = averageRoh.G();
+
 					// Blue: in lowpper-right corners
 					(*traceArgs.img)(x, y, 2) = averageRoh.B();
 				}			

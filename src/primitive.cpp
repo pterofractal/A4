@@ -43,8 +43,7 @@ bool NonhierSphere::hit(Ray& ray, double epsilon)
 {
 	double a, b, c, t;
 	t = 0;
-	Vector3D temp;
-	temp = ray.origin - m_pos;
+	Vector3D temp = ray.origin - m_pos;
 	
 	// Coefficients of basic quadratic equation at^2 + bt + c
 	a = ray.dir.dot(ray.dir);

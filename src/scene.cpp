@@ -76,17 +76,13 @@ bool SceneNode::hit(Ray* ray, double epsilon)
 	// Transform ray
 	ray->origin = m_invtrans * ray->origin;
 	ray->dir = m_invtrans * ray->dir;
-	Vector3D temp2 = ray->dir;
-	
-//	ray->dir.normalize();
-	
+		
 	for ( i = temp.begin() ; i != temp.end(); i++ )
 	{
 		ret = (*i)->hit(ray, epsilon) || ret;
 	}
 
 	// Restore ray
-	ray->dir = temp2;
 	ray->origin = m_trans * ray->origin;
 	ray->dir = m_trans * ray->dir;
 	ray->hitPos = m_trans * ray->hitPos;
@@ -95,10 +91,8 @@ bool SceneNode::hit(Ray* ray, double epsilon)
 	if (ret)
 	{
 		ray->n = m_invtrans.transpose() * ray->n;
-		//ray->n.normalize();
+		ray->n.normalize();
 	}
-		
-//	ray->dir.normalize();
 		
 	return ret;	
 }
@@ -133,7 +127,32 @@ void JointNode::set_joint_y(double min, double init, double max)
 
 bool JointNode::hit(Ray *ray, double epsilon)
 {
-	return false;
+	ChildList temp = m_children;
+	ChildList::iterator i;
+	bool ret = false;
+	// Transform ray
+	ray->origin = m_invtrans * ray->origin;
+	ray->dir = m_invtrans * ray->dir;
+	Vector3D temp2 = ray->dir;
+		
+	for ( i = temp.begin() ; i != temp.end(); i++ )
+	{
+		ret = (*i)->hit(ray, epsilon) || ret;
+	}
+
+	// Restore ray
+	ray->origin = m_trans * ray->origin;
+	ray->dir = m_trans * ray->dir;
+	ray->hitPos = m_trans * ray->hitPos;
+
+	
+	if (ret)
+	{
+		ray->n = m_invtrans.transpose() * ray->n;
+		ray->n.normalize();
+	}
+		
+	return ret;
 }
 
 GeometryNode::GeometryNode(const std::string& name, Primitive* primitive)
@@ -154,9 +173,6 @@ bool GeometryNode::hit(Ray *ray, double epsilon)
 	// Transform ray
 	ray->origin = m_invtrans * ray->origin;
 	ray->dir = m_invtrans * ray->dir;
-	Vector3D temp2 = ray->dir;
-	
-//	ray->dir.normalize();
 	
 	// Intersect with primitive
 	bool ret = false;
@@ -175,7 +191,6 @@ bool GeometryNode::hit(Ray *ray, double epsilon)
 	}
 		
 	// Restore ray
-	ray->dir = temp2;
 	ray->origin = m_trans * ray->origin;
 	ray->dir = m_trans * ray->dir;
 	ray->hitPos = m_trans * ray->hitPos;
@@ -183,11 +198,8 @@ bool GeometryNode::hit(Ray *ray, double epsilon)
 	if (ret)
 	{
 		ray->n = m_invtrans.transpose() * ray->n;
-	//	ray->n.normalize();
+		ray->n.normalize();
 	}
-		
-	// Normalize vectors
-//	ray->dir.normalize();
 	
 	return ret;
 }
