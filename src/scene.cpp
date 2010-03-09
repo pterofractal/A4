@@ -95,7 +95,7 @@ bool SceneNode::hit(Ray* ray, double epsilon)
 	if (ret)
 	{
 		ray->n = m_invtrans.transpose() * ray->n;
-		ray->n.normalize();
+		//ray->n.normalize();
 	}
 		
 //	ray->dir.normalize();
@@ -183,7 +183,7 @@ bool GeometryNode::hit(Ray *ray, double epsilon)
 	if (ret)
 	{
 		ray->n = m_invtrans.transpose() * ray->n;
-		ray->n.normalize();
+	//	ray->n.normalize();
 	}
 		
 	// Normalize vectors

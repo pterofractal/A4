@@ -7,7 +7,7 @@
 Matrix4x4 transformationMatrix;
 pthread_mutex_t mutex1;
 const int numThreads = 50;
-const int samples = 3;
+const int samples = 1;
 void testtest(Ray* ray)
 {
 	pthread_mutex_lock(&mutex1);
@@ -53,7 +53,7 @@ void a4_render(// What to render
 	Matrix4x4  T, R, S, M;
 	Point3D pixelWorld;
 	
-	double d = 100;
+	double d = 1000;
 	
 	// Move Matrix
 	M[0][3] = -1 * width / 2.0;
@@ -310,6 +310,8 @@ void *ray_trace(void *arg)
 
 					if (ray->isHit())
 					{
+						ray->n.normalize();
+						ray->dir.normalize();
 						//std::cout << "t\t\t" << ray->t << "\n";
 						// Iterate through each light source
 						for (std::list<Light*>::const_iterator I = lights.begin(); I != lights.end(); ++I) 
@@ -337,7 +339,7 @@ void *ray_trace(void *arg)
 							lightRay->setHit(false);
 							lightRay->secondaryRay = true;
 							traceArgs.root->hit(lightRay, 0.0000000001);
-
+											
 							if (!lightRay->isHit() || (lightRay->isHit() && dist < (lightRay->getHitPos() - ray->getHitPos()).length() ) ) 
 							{
 								// If the light ray doesn't hit anything then the light from 
@@ -349,7 +351,9 @@ void *ray_trace(void *arg)
 
 								// Calculate the diffuse value
 								diffuse = ( (PhongMaterial *)ray->material)->get_kd();
-								diffuse = (directionOfLight.dot(ray->n)) * diffuse;
+								diffuse = traceArgs.ambient + diffuse;
+								diffuse = (directionOfLight.dot(ray->n)) * diffuse ;
+								
 
 								// Calculate the specular value
 								specular = ( (PhongMaterial *)ray->material)->get_ks();
@@ -398,7 +402,7 @@ void *ray_trace(void *arg)
 				{
 					averageRoh = (1.0 / (samples * samples) ) * averageRoh;
 					// Add the ambient to our colour values
-					averageRoh = averageRoh + traceArgs.ambient;
+/*					averageRoh = averageRoh + ambientFactor;*/
 
 					// Red: increasing from top to bottom
 					(*traceArgs.img)(x, y, 0) = averageRoh.R();
