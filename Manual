@@ -1,0 +1,101 @@
+MANUAL
+
+This is the manual for the Ray tracer assignment. Here you will see details about how I 
+developed the ray tracer and information about the additional feature I created.
+
+--------------------------------------------------------
+Command line options
+--------------------------------------------------------
+No additional command line options were added
+
+
+--------------------------------------------------------
+Extra Features
+--------------------------------------------------------
+I added multithreading and antialiasing to the basic ray tracer.
+
+By default they are both turned off. To add multiple threads there is a global variable inside
+a4.cpp called numThreads. Increasing this value will create more threads. My program currently 
+assumes numThreads is an int and is strictly greater than 0
+
+I implemented a jittered antialiasing approach. Inside a4.cpp there is a global variable called
+samples. Increasing this value will divide a pixel up into sample X sample boxes. Then the program
+will randomly pick a sample inside each box and attempt to ray trace it. Afterwards it will take
+the average of all those samples and assign that as the colour.
+
+e.g. If samples = 5, each pixel will be divided into 25 equally sized squares, and a ray will be
+shot randomly through each square. Afterwards it will average out the colours returned by those 25
+rays and use that in the image
+
+Examples of antialiasing can be found in screenshots 1, 3, 5, 9, 11, 13
+
+
+--------------------------------------------------------
+Implementation details
+--------------------------------------------------------
+I created an additional class called Ray which is used to store data for a ray. A ray object stores
+the following information
+
+Point3D origin;
+Vector3D dir;
+	
+// Properties for after a hit
+Material *material;
+double t; // Parameter of how far along ray we are before we hit an object
+Vector3D n; // normal
+std::string name;
+
+Origin stores where the ray is starting
+
+Dir stores the direction the ray is going
+
+*material is a pointer to the material for the surface the ray hits
+
+t is the parameter t in the equation P(t) = origin + dir * t. It is used to determine how far along
+the ray we are
+
+n stores the normal to the surface the ray hits
+
+name stores the name of the object the ray hits. This variable is mainly used for debugging purposes
+
+Each of these members are public to make it easier to manipulate the data. Probably not the wisest 
+design decision but it made coding a little bit easier.
+
+The ray class also has simple functions such as getHitPos() which will return the position of whatever
+the ray hit.
+
+There is also a method called getLength which returns how long the ray is.
+
+INTERSECTIONS WITH OBJECTS
+Using the formula's from class intersecting a ray with a non-hierarchical sphere was simply plugging in the equation of
+a line into the equation of a sphere and solving for t. When solving the sphere ray intersections my
+program is making use of the polyroots class
+
+To intersect a ray with a hierarchical sphere I simply create a unit sphere centred at the origin and try to intersect
+with that sphere. The ray has been properly transformed at this point so I don't need to worry about manipulating the
+sphere
+
+To intersect a ray and a box I try to intersect the ray with each plane making up the box. After a ray successfully hits
+a box I check to make sure the intersection point is within the bounds of that face. There is room to speed this up probably
+but right now even after two successful hits it will still try and intersect the ray with every wall.
+
+For hierarchical boxes, I created a nonhierarchical box with one corner at (0, 0, 0) and width = 1, and intersected the
+ray with that nonhierarchical box. Since the ray has been properly transformed I don't need to worry about manipulating 
+the box.
+
+To intersect a ray and mesh I followed the algorithm proposed from lectures
+
+BOUNDING SPHERES
+To speed up intersecting rays with meshes I enclosed the mesh in a sphere. When a mesh is constructed the first the program
+wil do is go through all the vertices and pull out the smallest and largest x, y, and z components. I then consider 
+the minimum (x, y, z) as a lower bound for all vertices and points inside the mesh. Similarly I consider the maximum (x, y, z)
+to be an upper bound. Using these two points I construct a sphere that has diameter equal to the length from the minimum
+(x, y, z) to the maximum (x, y, z). By construction this sphere will enclose the entire mesh. An example of this can be seen 
+in screenshot 6.png
+
+
+
+-------------------------------
+Incomplete Objectives:
+-------------------------------
+I attempted and completed every objective.

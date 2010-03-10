@@ -1,0 +1,30 @@
+--------------------------------------------------------
+Machines the program was compiled on:
+--------------------------------------------------------
+The program was compiled, tested, and submitted from gl05. I also compiled and developed the program locally on my intel iMac running snow leopard
+
+----------------------------
+How to run program:	
+----------------------------
+To run the program you simply navigate to /A4/src/ and run ./rt <file.lua> <number of threads> <number of samples>. The program
+
+-----------------
+What you can do:
+-----------------
+The purpose of this program is to ray trace a file described in lua. A user can describe a variety of shapes in a scene and also transform
+and translate them. After describing the scene a user can describe where light sources are and where the user plans to view teh scene from.
+After doing this the user can run the raytracer program passing in their lua file and the program will draw out the file they described to
+a png.
+
+Other features implemented are multithreading and antialiasing. By default the program will use 1 thread and will only take 1 sample per
+pixel. If you want to add more there is a global variable inside a4.cpp called samples and numThreads. Samples is a variable that stores
+how many rows and columns worth of samples the program is to take per pixel. So if a user puts in, samples = 5, the program will take 25
+samples per pixel. It will divide the pixel into 5 rows and 5 columns, and take a random point in each block.
+
+numThreads defines how many threads are to be created.
+
+ 
+-----------------
+Assumptions:
+-----------------
+All input described in the lua files is valid.
