@@ -11,8 +11,6 @@ Primitive::~Primitive()
 
 bool Sphere::hit(Ray& ray, double epsilon)
 {
-	double a, b, c, t;
-	t = 0;
 	Point3D m_pos(0, 0, 0);
 	int m_radius = 1;
 	NonhierSphere simpleSphere(m_pos, m_radius);
@@ -82,7 +80,6 @@ bool NonhierSphere::hit(Ray& ray, double epsilon)
 		ray.n = Vector3D(ray.origin[0] + t * ray.dir[0] - m_pos[0], ray.origin[1] + t * ray.dir[1] - m_pos[1], ray.origin[2] + t * ray.dir[2] - m_pos[2]);
 		ray.n.normalize();
 		ray.t = t;		
-		ray.hitPos = ray.getHitPos();	
 		ray.setHit(true);
 		
 		return true;
@@ -99,205 +96,96 @@ NonhierBox::~NonhierBox()
 }
 
 bool NonhierBox::hit(Ray& ray, double epsilon)
-{
-/*	Vector3D normal[6];
-		
+{		
+	Vector3D normal[6];
+	
+	// The normals for each face
 	normal[0] = Vector3D(0, 0, 1);
 	normal[1] = Vector3D(0, 0, -1);
 	normal[2] = Vector3D(0, 1, 0);
 	normal[3] = Vector3D(0, -1, 0);
 	normal[4] = Vector3D(1, 0, 0);
 	normal[5] = Vector3D(-1, 0, 0);
-	bool rayHit = false;
 	
-	double numer, denom;
-	double t[6];
-	Point3D pointOnPlane = m_pos;
-	Point3D hitPos[6];
-	
+	Point3D hitPos;
+	bool ret = false;
+	Ray duplicateRay = ray;
+
 	// Intersect with front face
-	pointOnPlane[2] += m_size;
-	ray.origin[2] += epsilon;
-	numer = normal[0].dot(pointOnPlane - ray.origin);
-	denom = normal[0].dot(ray.dir);
-	t[0] = numer/denom;
-	
-	hitPos[0] = ray.origin + (t[0] * ray.dir);
-	
-	// Intersect with the back face	
-	pointOnPlane[2] -= m_size;
-	ray.origin[2] -= epsilon;
-	numer = normal[1].dot(pointOnPlane - ray.origin);
-	denom = normal[1].dot(ray.dir);
-	t[1] = numer/denom;
-	hitPos[1] = ray.origin + (t[1] * ray.dir);
-
-	// Intersect with top face
-	pointOnPlane = m_pos;
-	pointOnPlane[1] += m_size;
-	ray.origin[1] += epsilon;
-	numer = normal[2].dot(pointOnPlane - ray.origin);
-	denom = normal[2].dot(ray.dir);
-	t[2] = numer/denom;	
-	hitPos[2] = ray.origin + (t[2] * ray.dir);
-	
-	// Intersect with Botom face
-	pointOnPlane[1] -= m_size;
-	ray.origin[1] -= epsilon;
-	numer = normal[3].dot(pointOnPlane - ray.origin);
-	denom = normal[3].dot(ray.dir);
-	t[3] = numer/denom;	
-	hitPos[3] = ray.origin + (t[3] * ray.dir);
-		
-	// Intersect with side face
-	pointOnPlane[0] += m_size;
-	ray.origin[0] += epsilon;
-	numer = normal[4].dot(pointOnPlane - ray.origin);
-	denom = normal[4].dot(ray.dir);
-	t[4] = numer/denom;
-	hitPos[4] = ray.origin + (t[4] * ray.dir);
-	
-	// Intersect with other side face		
-	pointOnPlane[0] -= m_size;
-	ray.origin[0] -= epsilon;
-	numer = normal[5].dot(pointOnPlane - ray.origin);
-	denom = normal[5].dot(ray.dir);
-	t[5] = numer/denom;
-	hitPos[5] = ray.origin + (t[5] * ray.dir);
-	
-	double tMin = LONG_MAX;
-	Point3D actualHitPos;
-	int index = 0;
-	for (int i = 0;i<6;i++)
+	Plane frontPlane(m_pos, normal[0]);
+	frontPlane.hit(duplicateRay, epsilon);
+	hitPos = duplicateRay.getHitPos();
+	if (m_pos[0] < hitPos[0] && m_pos[1] < hitPos[1] && fabs(m_pos[2] - hitPos[2]) < epsilon &&
+	    m_pos[0] + m_size > hitPos[0] && m_pos[1] + m_size > hitPos[1])
 	{
-		if (tMin > t[i] && normal[i].dot(ray.dir) > epsilon && t[i] > epsilon)
-		{
-			tMin = t[i];
-			actualHitPos = hitPos[i];
-			index = i;
-		}
+		ret = true;
+		ray = duplicateRay;
 	}
 	
-	if (actualHitPos[0] >= m_pos[0] && actualHitPos[1] >= m_pos[1] && actualHitPos[2] >= m_pos[2] && 
-		actualHitPos[0] <= m_pos[0] + m_size && actualHitPos[1] <= m_pos[1] + m_size && actualHitPos[2] <= m_pos[2] + m_size)
-	{		
-		
-		if (ray.isHit() && tMin > ray.t)
-		{
-			// This object is closer to the origin so we will update our ray
-			return false;
-		}			
-						
-		ray.n = normal[index];
-		ray.t = tMin;			
-		ray.setHit(true);
-		return true;
-	}*/
 	
-	double ox = ray.origin[0]; 
-	double oy = ray.origin[1]; 
-	double oz = ray.origin[2];
-	double dx = ray.dir[0]; 
-	double dy = ray.dir[1]; 
-	double dz = ray.dir[2];
-
-	double tx_min, ty_min, tz_min;
-	double tx_max, ty_max, tz_max; 
-
-	double a = 1.0 / dx;
-	if (a >= 0) {
-		tx_min = (m_pos[0] - ox) * a;
-		tx_max = (m_pos[0] + m_size - ox) * a;
-	}
-	else {
-		tx_min = (m_pos[0] + m_size - ox) * a;
-		tx_max = (m_pos[0] - ox) * a;
+	duplicateRay = ray;
+	// Intersect with Botom face
+	Plane bottomPlane(m_pos, normal[3]);
+	bottomPlane.hit(duplicateRay, epsilon);
+	hitPos = duplicateRay.getHitPos();
+	if (m_pos[0] < hitPos[0] && fabs(m_pos[1] - hitPos[1]) < epsilon && m_pos[2] < hitPos[2] &&
+	    m_pos[0] + m_size > hitPos[0] && m_pos[2] + m_size > hitPos[2])
+	{
+		ray = duplicateRay;
+		ret = true;
 	}
 
-	double b = 1.0 / dy;
-	if (b >= 0) {
-		ty_min = (m_pos[1] - oy) * b;
-		ty_max = (m_pos[1] + m_size - oy) * b;
-	}
-	else {
-		ty_min = (m_pos[1] + m_size - oy) * b;
-		ty_max = (m_pos[1] - oy) * b;
-	}
-
-	double c = 1.0 / dz;
-	if (c >= 0) {
-		tz_min = (m_pos[2] - oz) * c;
-		tz_max = (m_pos[2] + m_size - oz) * c;
-	}
-	else {
-		tz_min = (m_pos[2] + m_size - oz) * c;
-		tz_max = (m_pos[2] - oz) * c;
+	duplicateRay = ray;
+	// Intersect with left side face
+	Plane leftPlane(m_pos, normal[5]);
+	leftPlane.hit(duplicateRay, epsilon);
+	hitPos = duplicateRay.getHitPos();
+	if (fabs(m_pos[0] - hitPos[0]) < epsilon && m_pos[1] < hitPos[1] && m_pos[2] < hitPos[2] &&
+	    m_pos[1] + m_size > hitPos[1] && m_pos[2] + m_size > hitPos[2])
+	{
+		ray = duplicateRay;
+		ret = true;
 	}
 	
-	double t0, t1;
-	int face_in, face_out;
-	double tmin = LONG_MAX;
-	// find largest entering t value
-
-	if (tx_min > ty_min) {
-		t0 = tx_min;
-		face_in = (a >= 0.0) ? 0 : 3;
-	}
-	else {
-		t0 = ty_min;
-		face_in = (b >= 0.0) ? 1 : 4;
-	}
-
-	if (tz_min > t0) {
-		t0 = tz_min;
-		face_in = (c >= 0.0) ? 2 : 5;
-	}
-
-	// find smallest exiting t value
-
-	if (tx_max < ty_max) {
-		t1 = tx_max;
-		face_out = (a >= 0.0) ? 3 : 0;
-	}
-	else {
-		t1 = ty_max;
-		face_out = (b >= 0.0) ? 4 : 1;
-	}
-
-	if (tz_max < t1) {
-		t1 = tz_max;
-		face_out = (c >= 0.0) ? 5 : 2;
-	}
-
-	if (t0 < t1 && t1 > epsilon) {  // condition for a hit
-		if (t0 > epsilon) {
-			tmin = t0;  			// ray hits outside surface
-
-			ray.n = get_normal_for_cube(face_in);
-		}
-		else {
-			tmin = t1;				// ray hits inside surface
-
-			ray.n = get_normal_for_cube(face_out);
-		}
-		
-		if (tmin == LONG_MAX && !ray.isHit())
-		{
-			tmin = 0;
-			return false;
-		}
-		
-		if (ray.isHit() && tmin > ray.t)
-			return false;
-		
-		ray.t = tmin;
-		ray.hitPos = ray.getHitPos();
-//		ray.n = get_normal(face_out);
-		ray.setHit(true);
-		return (true);
+	Point3D oppositeCorner(m_size + m_pos[0], m_size + m_pos[1], m_size + m_pos[2]);
+	
+	duplicateRay = ray;
+	// Intersect with the back face	
+	Plane backPlane(oppositeCorner, normal[1]);
+	backPlane.hit(duplicateRay, epsilon);
+	hitPos = duplicateRay.getHitPos();
+	if (oppositeCorner[0] > hitPos[0] && oppositeCorner[1] > hitPos[1] && fabs(oppositeCorner[2] - hitPos[2]) < epsilon &&
+	    oppositeCorner[0] - m_size < hitPos[0] && oppositeCorner[1] - m_size < hitPos[1])
+	{
+		ray = duplicateRay;
+		ret = true;
 	}
 	
-	return false;
+	duplicateRay = ray;
+	// Intersect with top face
+	Plane topPlane(oppositeCorner, normal[2]);
+	topPlane.hit(duplicateRay, epsilon);
+	hitPos = duplicateRay.getHitPos();
+	if (oppositeCorner[0] > hitPos[0] && fabs(oppositeCorner[1] - hitPos[1]) < epsilon && oppositeCorner[2] > hitPos[2] &&
+	    oppositeCorner[0] - m_size < hitPos[0] && oppositeCorner[2] - m_size < hitPos[2])
+	{
+		ray = duplicateRay;
+		ret = true;
+	}
+	
+	duplicateRay = ray;
+	// Intersect with other side face		
+	Plane rightPlane(oppositeCorner, normal[4]);
+	rightPlane.hit(duplicateRay, epsilon);
+	hitPos = duplicateRay.getHitPos();
+	if (fabs(oppositeCorner[0] - hitPos[0]) < epsilon && oppositeCorner[1] > hitPos[1] && oppositeCorner[2] > hitPos[2] &&
+	    oppositeCorner[2] - m_size < hitPos[2] && oppositeCorner[1] - m_size < hitPos[1])
+	{
+		ray = duplicateRay;
+		ret = true;
+	}
+
+	return ret;
 }
 
 
@@ -318,7 +206,7 @@ bool Plane::hit(Ray& ray, double epsilon)
 	denom = ray.dir.dot(normal);
 	double t = (pos - ray.origin).dot(normal) / (ray.dir.dot(normal));
 	
-	if (ray.isHit() && ray.t < t) //|| ((ray.hitPos - ray.origin).length() < (ray.getHitPos(t) - ray.origin).length() ) )
+	if (ray.isHit() && ray.t < t)
 	{
 		return false;
 	}
@@ -328,7 +216,6 @@ bool Plane::hit(Ray& ray, double epsilon)
 	if (t > epsilon)
 	{
 		ray.t = t;
-		ray.hitPos = ray.getHitPos();
 		ray.n = normal;
 		ray.setHit(true);
 		return true;

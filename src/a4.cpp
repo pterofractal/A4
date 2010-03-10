@@ -6,8 +6,8 @@
 
 Matrix4x4 transformationMatrix;
 pthread_mutex_t mutex1;
-const int numThreads = 50;
-const int samples = 1;
+int samples = 1;
+int numThreads = 1;
 
 void testtest(Ray* ray)
 {
@@ -19,18 +19,18 @@ void testtest(Ray* ray)
 	pthread_mutex_unlock(&mutex1);
 }
 
-void a4_render(// What to render
-               SceneNode* root,
-               // Where to output the image
-               const std::string& filename,
-               // Image size
-               int width, int height,
-               // Viewing parameters
-               const Point3D& eye, const Vector3D& view,
-               const Vector3D& up, double fov,
-               // Lighting parameters
-               const Colour& ambient,
-               std::list<Light*>& lights
+void a4_render(	// What to render
+		SceneNode* root,
+		// Where to output the image
+		const std::string& filename,
+		// Image size
+		int width, int height,
+		// Viewing parameters
+		const Point3D& eye, const Vector3D& view,
+		const Vector3D& up, double fov,
+		// Lighting parameters
+		const Colour& ambient,
+		std::list<Light*>& lights
                )
 {
   // Fill in raytracing code here.
@@ -47,10 +47,7 @@ void a4_render(// What to render
 	}
 	std::cout << "});" << std::endl;
   
-	double L_in[lights.size()];
-	int index = 0;
 	Image img(width, height, 3);
-	double aspectRatio = width/height;
 	Matrix4x4  T, R, S, M;
 	Point3D pixelWorld;
 	
@@ -109,8 +106,8 @@ void a4_render(// What to render
 		traceArgs[i].height = height;
 	}
 
-	int xMin, xMax, yMin, yMax;
-					srand( (unsigned)time( 0 ) );
+	//Seed random number generator
+	srand( (unsigned)time( 0 ) );
 
 	int errcode;
 	double sections = 1.0/numThreads;
@@ -131,7 +128,6 @@ void a4_render(// What to render
 		}
 	}
 
-	int *status;
 	for (int i = 0;i<numThreads;i++)
 	{
 		// wait for thread to terminate 
@@ -159,7 +155,6 @@ void *ray_trace(void *arg)
 	ray->origin = traceArgs.eye;
 	Point3D pixelWorld;
 	double samplesD = samples;
-	
 	for (int y = traceArgs.yMin;y<traceArgs.yMax;y++)
 	{
 		for (int x = traceArgs.xMin;x<traceArgs.xMax;x++)
